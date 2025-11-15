@@ -1,0 +1,912 @@
+// API Configuration
+const API_BASE_URL = 'http://localhost:5000/api';
+
+// Global state
+let currentMode = 'rater';
+let raterImageData = null;
+let generatorImageData = null;
+let generatedImageData = null;
+let lastGeneratorParams = null;
+let currentRaterOccasion = null;
+let currentGeneratorOccasion = null;
+
+// Initialize app
+document.addEventListener('DOMContentLoaded', function() {
+    initializeModeSwitch();
+    initializeRaterMode();
+    initializeGeneratorMode();
+});
+
+// Mode Switching
+function initializeModeSwitch() {
+    const modeButtons = document.querySelectorAll('.mode-btn');
+    
+    modeButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const mode = this.getAttribute('data-mode');
+            switchMode(mode);
+        });
+    });
+}
+
+function switchMode(mode) {
+    currentMode = mode;
+    
+    // Update buttons
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.getAttribute('data-mode') === mode) {
+            btn.classList.add('active');
+        }
+    });
+    
+    // Update content
+    document.querySelectorAll('.mode-content').forEach(content => {
+        content.classList.remove('active');
+    });
+    
+    if (mode === 'rater') {
+        document.getElementById('rater-mode').classList.add('active');
+    } else {
+        document.getElementById('generator-mode').classList.add('active');
+    }
+}
+
+// Rater Mode Initialization
+function initializeRaterMode() {
+    const uploadArea = document.getElementById('rater-upload');
+    const fileInput = document.getElementById('rater-file-input');
+    const preview = document.getElementById('rater-preview');
+    const form = document.getElementById('rater-form');
+    const occasionSelect = document.getElementById('rater-occasion');
+    const customOccasion = document.getElementById('rater-custom-occasion');
+    
+    // Upload area click
+    uploadArea.addEventListener('click', () => fileInput.click());
+    
+    // File input change
+    fileInput.addEventListener('change', function(e) {
+        if (e.target.files && e.target.files[0]) {
+            handleRaterImageUpload(e.target.files[0]);
+        }
+    });
+    
+    // Drag and drop
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.style.borderColor = '#667eea';
+    });
+    
+    uploadArea.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        uploadArea.style.borderColor = '#e0e0e0';
+    });
+    
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.style.borderColor = '#e0e0e0';
+        
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            handleRaterImageUpload(e.dataTransfer.files[0]);
+        }
+    });
+    
+    // Occasion select
+    occasionSelect.addEventListener('change', function() {
+        if (this.value === 'custom') {
+            customOccasion.style.display = 'block';
+            customOccasion.required = true;
+        } else {
+            customOccasion.style.display = 'none';
+            customOccasion.required = false;
+        }
+    });
+    
+    // Form submission
+    form.addEventListener('submit', handleRaterSubmit);
+}
+
+function handleRaterImageUpload(file) {
+    // Check file size (10MB max)
+    if (file.size > 10 * 1024 * 1024) {
+        alert('File size must be less than 10MB');
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        raterImageData = e.target.result;
+        
+        const preview = document.getElementById('rater-preview');
+        const uploadArea = document.getElementById('rater-upload');
+        
+        preview.src = raterImageData;
+        preview.style.display = 'block';
+        uploadArea.classList.add('has-image');
+        uploadArea.querySelector('.upload-prompt').style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+}
+
+async function handleRaterSubmit(e) {
+    e.preventDefault();
+    
+    if (!raterImageData) {
+        alert('Please upload an outfit photo');
+        return;
+    }
+    
+    const occasionSelect = document.getElementById('rater-occasion');
+    const customOccasion = document.getElementById('rater-custom-occasion');
+    const currency = document.getElementById('rater-currency').value;
+    const budget = document.getElementById('rater-budget').value;
+    
+    let occasion = occasionSelect.value;
+    if (occasion === 'custom') {
+        occasion = customOccasion.value;
+    }
+    
+    const budgetText = budget ? `${currency} ${budget}` : '';
+    
+    // Show loading
+    document.getElementById('rater-form').style.display = 'none';
+    document.getElementById('rater-loading').style.display = 'block';
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/rate-outfit`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                image: raterImageData,
+                occasion: occasion,
+                budget: budgetText
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            displayRaterResults(JSON.parse(result.data));
+        } else {
+            throw new Error(result.error || 'Failed to rate outfit');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error: ' + error.message + '\n\nPlease make sure:\n1. The Flask backend is running\n2. Your OpenAI API key is configured in the .env file');
+        document.getElementById('rater-form').style.display = 'block';
+    } finally {
+        document.getElementById('rater-loading').style.display = 'none';
+    }
+}
+
+function displayRaterResults(data) {
+    // Display scores
+    document.getElementById('wow-score').textContent = data.wow_factor + '/10';
+    document.getElementById('wow-explanation').textContent = data.wow_factor_explanation;
+    
+    document.getElementById('fitness-score').textContent = data.occasion_fitness + '/10';
+    document.getElementById('fitness-explanation').textContent = data.occasion_fitness_explanation;
+    
+    document.getElementById('overall-score').textContent = data.overall_rating + '/10';
+    document.getElementById('overall-explanation').textContent = data.overall_explanation;
+    
+    // Display strengths
+    const strengthsList = document.getElementById('strengths-list');
+    strengthsList.innerHTML = '';
+    data.strengths.forEach(strength => {
+        const li = document.createElement('li');
+        li.textContent = strength;
+        strengthsList.appendChild(li);
+    });
+    
+    // Display improvements
+    const improvementsList = document.getElementById('improvements-list');
+    improvementsList.innerHTML = '';
+    data.improvements.forEach(improvement => {
+        const li = document.createElement('li');
+        li.textContent = improvement;
+        improvementsList.appendChild(li);
+    });
+    
+    // Display suggestions
+    const suggestionsList = document.getElementById('suggestions-list');
+    suggestionsList.innerHTML = '';
+    data.suggestions.forEach(suggestion => {
+        const li = document.createElement('li');
+        li.textContent = suggestion;
+        suggestionsList.appendChild(li);
+    });
+    
+    // Display shopping recommendations
+    const shoppingGrid = document.getElementById('shopping-grid');
+    shoppingGrid.innerHTML = '';
+    data.shopping_recommendations.forEach(item => {
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'shopping-item';
+        itemDiv.innerHTML = `
+            <h5>${item.item}</h5>
+            <div class="item-description">${item.description}</div>
+            <div class="item-price">${item.price}</div>
+            <div class="item-reason">${item.reason}</div>
+            <button class="btn-shop" onclick="alert('This is a demo MVP. In production, this would link to the actual product.')">Shop Now</button>
+        `;
+        shoppingGrid.appendChild(itemDiv);
+    });
+    
+    // Show results
+    document.getElementById('rater-results').style.display = 'block';
+    
+    // Scroll to results
+    document.getElementById('rater-results').scrollIntoView({ behavior: 'smooth' });
+}
+
+function resetRater() {
+    // Reset form
+    document.getElementById('rater-form').reset();
+    document.getElementById('rater-form').style.display = 'block';
+    
+    // Reset image
+    raterImageData = null;
+    document.getElementById('rater-preview').style.display = 'none';
+    document.getElementById('rater-upload').classList.remove('has-image');
+    document.getElementById('rater-upload').querySelector('.upload-prompt').style.display = 'block';
+    
+    // Hide results
+    document.getElementById('rater-results').style.display = 'none';
+    
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Generator Mode Initialization
+function initializeGeneratorMode() {
+    const uploadArea = document.getElementById('generator-upload');
+    const fileInput = document.getElementById('generator-file-input');
+    const preview = document.getElementById('generator-preview');
+    const form = document.getElementById('generator-form');
+    const wowSlider = document.getElementById('wow-slider');
+    const occasionSelect = document.getElementById('generator-occasion');
+    const customOccasion = document.getElementById('generator-custom-occasion');
+    
+    // Upload area click
+    uploadArea.addEventListener('click', () => fileInput.click());
+    
+    // File input change
+    fileInput.addEventListener('change', function(e) {
+        if (e.target.files && e.target.files[0]) {
+            handleGeneratorImageUpload(e.target.files[0]);
+        }
+    });
+    
+    // Drag and drop
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.style.borderColor = '#667eea';
+    });
+    
+    uploadArea.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        uploadArea.style.borderColor = '#e0e0e0';
+    });
+    
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.style.borderColor = '#e0e0e0';
+        
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            handleGeneratorImageUpload(e.dataTransfer.files[0]);
+        }
+    });
+    
+    // Wow factor slider
+    wowSlider.addEventListener('input', function() {
+        const value = parseInt(this.value);
+        document.getElementById('wow-value').textContent = value;
+        
+        let label;
+        if (value <= 3) {
+            label = 'Classic & Safe';
+        } else if (value <= 6) {
+            label = 'Balanced & Stylish';
+        } else {
+            label = 'Bold & Creative';
+        }
+        document.getElementById('wow-label').textContent = label;
+    });
+    
+    // Occasion select
+    occasionSelect.addEventListener('change', function() {
+        if (this.value === 'custom') {
+            customOccasion.style.display = 'block';
+            customOccasion.required = true;
+        } else {
+            customOccasion.style.display = 'none';
+            customOccasion.required = false;
+        }
+    });
+    
+    // Form submission
+    form.addEventListener('submit', handleGeneratorSubmit);
+}
+
+function handleGeneratorImageUpload(file) {
+    // Check file size (10MB max)
+    if (file.size > 10 * 1024 * 1024) {
+        alert('File size must be less than 10MB');
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        generatorImageData = e.target.result;
+        
+        const preview = document.getElementById('generator-preview');
+        const uploadArea = document.getElementById('generator-upload');
+        
+        preview.src = generatorImageData;
+        preview.style.display = 'block';
+        uploadArea.classList.add('has-image');
+        uploadArea.querySelector('.upload-prompt').style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+}
+
+async function handleGeneratorSubmit(e) {
+    e.preventDefault();
+    
+    const wowFactor = parseInt(document.getElementById('wow-slider').value);
+    const brandsInput = document.getElementById('brands').value;
+    const brands = brandsInput ? brandsInput.split(',').map(b => b.trim()).slice(0, 5) : [];
+    const currency = document.getElementById('generator-currency').value;
+    const budget = document.getElementById('generator-budget').value;
+    const occasionSelect = document.getElementById('generator-occasion');
+    const customOccasion = document.getElementById('generator-custom-occasion');
+    const conditions = document.getElementById('conditions').value;
+    
+    let occasion = occasionSelect.value;
+    if (occasion === 'custom') {
+        occasion = customOccasion.value;
+    }
+    
+    const budgetText = `${currency} ${budget}`;
+    
+    // Save parameters for regeneration
+    lastGeneratorParams = {
+        user_image: generatorImageData,
+        wow_factor: wowFactor,
+        brands: brands,
+        budget: budgetText,
+        occasion: occasion,
+        conditions: conditions
+    };
+    
+    // Show loading
+    document.getElementById('generator-form').style.display = 'none';
+    document.getElementById('generator-loading').style.display = 'block';
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/generate-outfit`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(lastGeneratorParams)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            displayGeneratorResults(result);
+        } else {
+            throw new Error(result.error || 'Failed to generate outfit');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error: ' + error.message + '\n\nPlease make sure:\n1. The Flask backend is running\n2. Your OpenAI API key is configured in the .env file');
+        document.getElementById('generator-form').style.display = 'block';
+    } finally {
+        document.getElementById('generator-loading').style.display = 'none';
+    }
+}
+
+function displayGeneratorResults(result) {
+    const data = JSON.parse(result.outfit_description);
+    
+    // Display generated image
+    document.getElementById('generated-image').src = result.outfit_image_url;
+    
+    // Display outfit concept
+    document.getElementById('outfit-concept').textContent = data.outfit_concept;
+    
+    // Display outfit items
+    const itemsContainer = document.getElementById('outfit-items');
+    itemsContainer.innerHTML = '';
+    data.items.forEach(item => {
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'outfit-item';
+        itemDiv.innerHTML = `
+            <div class="item-type">${item.type}</div>
+            <div class="item-description">${item.description}</div>
+            <div class="item-color">Color: ${item.color}</div>
+            <div class="item-notes">${item.style_notes}</div>
+        `;
+        itemsContainer.appendChild(itemDiv);
+    });
+    
+    // Display color palette
+    document.getElementById('color-palette').textContent = data.color_palette;
+    
+    // Display occasion notes
+    document.getElementById('occasion-notes').textContent = data.occasion_notes;
+    
+    // Display shopping recommendations
+    const shoppingGrid = document.getElementById('generator-shopping-grid');
+    shoppingGrid.innerHTML = '';
+    let totalCost = 0;
+    
+    data.product_recommendations.forEach(item => {
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'shopping-item';
+        
+        // Extract numeric price for total
+        const priceMatch = item.price.match(/[\d,]+/);
+        if (priceMatch) {
+            totalCost += parseInt(priceMatch[0].replace(',', ''));
+        }
+        
+        itemDiv.innerHTML = `
+            <div class="item-type">${item.type}</div>
+            <h5>${item.item}</h5>
+            <div class="item-description">${item.description}</div>
+            <div class="item-price">${item.price}</div>
+            <div class="item-reason">${item.reason}</div>
+            <button class="btn-shop" onclick="alert('This is a demo MVP. In production, this would link to ${item.brand || 'the product'}.')">Shop Now</button>
+        `;
+        shoppingGrid.appendChild(itemDiv);
+    });
+    
+    // Display total cost
+    const currency = lastGeneratorParams.budget.split(' ')[0];
+    document.getElementById('total-cost').textContent = `${currency} ~${totalCost}`;
+    
+    // Show results
+    document.getElementById('generator-results').style.display = 'block';
+    
+    // Scroll to results
+    document.getElementById('generator-results').scrollIntoView({ behavior: 'smooth' });
+}
+
+async function regenerateOutfit() {
+    if (!lastGeneratorParams) {
+        alert('No previous parameters found');
+        return;
+    }
+    
+    // Hide results and show loading
+    document.getElementById('generator-results').style.display = 'none';
+    document.getElementById('generator-loading').style.display = 'block';
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/generate-outfit`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(lastGeneratorParams)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            displayGeneratorResults(result);
+        } else {
+            throw new Error(result.error || 'Failed to generate outfit');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error: ' + error.message);
+        document.getElementById('generator-results').style.display = 'block';
+    } finally {
+        document.getElementById('generator-loading').style.display = 'none';
+    }
+}
+
+function resetGenerator() {
+    // Reset form
+    document.getElementById('generator-form').reset();
+    document.getElementById('generator-form').style.display = 'block';
+    
+    // Reset slider
+    document.getElementById('wow-slider').value = 5;
+    document.getElementById('wow-value').textContent = '5';
+    document.getElementById('wow-label').textContent = 'Balanced & Stylish';
+    
+    // Reset image
+    generatorImageData = null;
+    document.getElementById('generator-preview').style.display = 'none';
+    document.getElementById('generator-upload').classList.remove('has-image');
+    document.getElementById('generator-upload').querySelector('.upload-prompt').style.display = 'block';
+    
+    // Hide results
+    document.getElementById('generator-results').style.display = 'none';
+    
+    // Clear saved params
+    lastGeneratorParams = null;
+    
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ============================================================================
+// FASHION ARENA FUNCTIONS
+// ============================================================================
+
+// Initialize Fashion Arena Mode
+document.addEventListener('DOMContentLoaded', function() {
+    // Arena tab switching
+    const arenaTabs = document.querySelectorAll('.arena-tab');
+    arenaTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const tabName = this.getAttribute('data-tab');
+            switchArenaTab(tabName);
+        });
+    });
+    
+    // Arena submission form
+    const arenaForm = document.getElementById('arena-submit-form');
+    if (arenaForm) {
+        arenaForm.addEventListener('submit', handleArenaSubmit);
+    }
+    
+    // Vote rating slider
+    const voteRating = document.getElementById('vote-rating');
+    if (voteRating) {
+        voteRating.addEventListener('input', function() {
+            document.getElementById('vote-rating-value').textContent = this.value;
+        });
+    }
+});
+
+// Update mode switching to include arena
+function switchMode(mode) {
+    currentMode = mode;
+    
+    // Update buttons
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.getAttribute('data-mode') === mode) {
+            btn.classList.add('active');
+        }
+    });
+    
+    // Update content
+    document.querySelectorAll('.mode-content').forEach(content => {
+        content.classList.remove('active');
+    });
+    
+    if (mode === 'rater') {
+        document.getElementById('rater-mode').classList.add('active');
+    } else if (mode === 'generator') {
+        document.getElementById('generator-mode').classList.add('active');
+    } else if (mode === 'arena') {
+        document.getElementById('arena-mode').classList.add('active');
+        // Load arena data when switching to arena mode
+        loadArenaSubmissions();
+    }
+}
+
+function switchArenaTab(tabName) {
+    // Update tab buttons
+    document.querySelectorAll('.arena-tab').forEach(tab => {
+        tab.classList.remove('active');
+        if (tab.getAttribute('data-tab') === tabName) {
+            tab.classList.add('active');
+        }
+    });
+    
+    // Update sections
+    document.querySelectorAll('.arena-section').forEach(section => {
+        section.classList.remove('active');
+    });
+    
+    if (tabName === 'browse') {
+        document.getElementById('arena-browse').classList.add('active');
+        loadArenaSubmissions();
+    } else if (tabName === 'leaderboard') {
+        document.getElementById('arena-leaderboard').classList.add('active');
+        loadLeaderboard();
+    }
+}
+
+// Load Arena Submissions
+async function loadArenaSubmissions() {
+    const sortBy = document.getElementById('arena-sort').value;
+    const grid = document.getElementById('arena-submissions-grid');
+    
+    grid.innerHTML = '<div class="loading-message">Loading submissions...</div>';
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/arena/submissions?sort_by=${sortBy}`);
+        const result = await response.json();
+        
+        if (result.success && result.submissions.length > 0) {
+            displayArenaSubmissions(result.submissions);
+        } else {
+            grid.innerHTML = '<div class="empty-message">No submissions yet. Be the first to share your style! 🌟</div>';
+        }
+    } catch (error) {
+        console.error('Error loading submissions:', error);
+        grid.innerHTML = '<div class="error-message">Failed to load submissions. Please try again.</div>';
+    }
+}
+
+function displayArenaSubmissions(submissions) {
+    const grid = document.getElementById('arena-submissions-grid');
+    grid.innerHTML = '';
+    
+    submissions.forEach(submission => {
+        const card = document.createElement('div');
+        card.className = 'arena-card';
+        
+        const sourceIcon = submission.source_mode === 'rater' ? '⭐' : '🎨';
+        
+        card.innerHTML = `
+            <div class="arena-card-image">
+                <img src="${submission.photo}" alt="${submission.title}">
+                <div class="arena-card-badge">${sourceIcon} ${submission.source_mode}</div>
+            </div>
+            <div class="arena-card-content">
+                <h4>${submission.title}</h4>
+                <p class="arena-card-description">${submission.description || 'No description'}</p>
+                <div class="arena-card-occasion">${submission.occasion}</div>
+                <div class="arena-card-stats">
+                    <span>👍 ${submission.total_votes}</span>
+                    <span>⭐ ${submission.average_rating.toFixed(1)}/10</span>
+                    <span>🗳️ ${submission.vote_count}</span>
+                </div>
+                <button class="btn-vote" onclick="openVoteModal('${submission.id}')">
+                    Rate & Vote
+                </button>
+            </div>
+        `;
+        
+        grid.appendChild(card);
+    });
+}
+
+// Load Leaderboard
+async function loadLeaderboard() {
+    const list = document.getElementById('leaderboard-list');
+    list.innerHTML = '<div class="loading-message">Loading leaderboard...</div>';
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/arena/leaderboard?limit=10`);
+        const result = await response.json();
+        
+        if (result.success && result.leaderboard.length > 0) {
+            displayLeaderboard(result.leaderboard);
+        } else {
+            list.innerHTML = '<div class="empty-message">No submissions yet. Be the first! 🏆</div>';
+        }
+    } catch (error) {
+        console.error('Error loading leaderboard:', error);
+        list.innerHTML = '<div class="error-message">Failed to load leaderboard. Please try again.</div>';
+    }
+}
+
+function displayLeaderboard(leaderboard) {
+    const list = document.getElementById('leaderboard-list');
+    list.innerHTML = '';
+    
+    leaderboard.forEach((submission, index) => {
+        const item = document.createElement('div');
+        item.className = 'leaderboard-item';
+        
+        const rank = index + 1;
+        let rankBadge = `<span class="rank">#${rank}</span>`;
+        
+        if (rank === 1) {
+            rankBadge = '<span class="rank rank-gold">🥇 #1</span>';
+        } else if (rank === 2) {
+            rankBadge = '<span class="rank rank-silver">🥈 #2</span>';
+        } else if (rank === 3) {
+            rankBadge = '<span class="rank rank-bronze">🥉 #3</span>';
+        }
+        
+        item.innerHTML = `
+            ${rankBadge}
+            <div class="leaderboard-image">
+                <img src="${submission.photo}" alt="${submission.title}">
+            </div>
+            <div class="leaderboard-details">
+                <h4>${submission.title}</h4>
+                <div class="leaderboard-stats">
+                    <span>⭐ ${submission.average_rating.toFixed(1)}/10</span>
+                    <span>👍 ${submission.total_votes} votes</span>
+                    <span>🗳️ ${submission.vote_count} ratings</span>
+                </div>
+                <div class="leaderboard-occasion">${submission.occasion}</div>
+            </div>
+        `;
+        
+        list.appendChild(item);
+    });
+}
+
+// Open Arena Submission Modal (from Rater or Generator)
+function openArenaModal(photoData, occasion, sourceMode) {
+    document.getElementById('arena-modal-preview').src = photoData;
+    document.getElementById('arena-photo-data').value = photoData;
+    document.getElementById('arena-occasion-data').value = occasion;
+    document.getElementById('arena-source-mode').value = sourceMode;
+    document.getElementById('arena-modal').style.display = 'flex';
+}
+
+function closeArenaModal() {
+    document.getElementById('arena-modal').style.display = 'none';
+    document.getElementById('arena-submit-form').reset();
+}
+
+// Handle Arena Submission
+async function handleArenaSubmit(e) {
+    e.preventDefault();
+    
+    const title = document.getElementById('arena-title').value;
+    const description = document.getElementById('arena-description').value;
+    const photo = document.getElementById('arena-photo-data').value;
+    const occasion = document.getElementById('arena-occasion-data').value;
+    const sourceMode = document.getElementById('arena-source-mode').value;
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/arena/submit`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                photo: photo,
+                title: title,
+                description: description,
+                occasion: occasion,
+                source_mode: sourceMode,
+                user_id: null // Can be extended to include user authentication
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('🎉 Successfully submitted to Fashion Arena!');
+            closeArenaModal();
+            
+            // Switch to arena mode to see the submission
+            switchMode('arena');
+        } else {
+            throw new Error(result.error || 'Failed to submit');
+        }
+    } catch (error) {
+        console.error('Error submitting to arena:', error);
+        alert('Error: ' + error.message);
+    }
+}
+
+// Open Vote Modal
+async function openVoteModal(submissionId) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/arena/submission/${submissionId}`);
+        const result = await response.json();
+        
+        if (result.success) {
+            const submission = result.submission;
+            
+            document.getElementById('vote-modal-preview').src = submission.photo;
+            document.getElementById('vote-modal-title').textContent = submission.title;
+            document.getElementById('vote-modal-description').textContent = submission.description || 'No description';
+            document.getElementById('vote-modal-votes').textContent = submission.total_votes;
+            document.getElementById('vote-modal-rating').textContent = submission.average_rating.toFixed(1);
+            document.getElementById('vote-modal-count').textContent = submission.vote_count;
+            document.getElementById('vote-submission-id').value = submissionId;
+            document.getElementById('vote-rating').value = 5;
+            document.getElementById('vote-rating-value').textContent = '5';
+            
+            document.getElementById('vote-modal').style.display = 'flex';
+        } else {
+            throw new Error(result.error || 'Failed to load submission');
+        }
+    } catch (error) {
+        console.error('Error loading submission:', error);
+        alert('Error: ' + error.message);
+    }
+}
+
+function closeVoteModal() {
+    document.getElementById('vote-modal').style.display = 'none';
+}
+
+// Submit Vote
+async function submitVote(voteType) {
+    const submissionId = document.getElementById('vote-submission-id').value;
+    const rating = parseInt(document.getElementById('vote-rating').value);
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/arena/vote`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                submission_id: submissionId,
+                vote_type: voteType,
+                rating: rating,
+                voter_id: null // Can be extended to include user authentication
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('✅ Vote submitted successfully!');
+            closeVoteModal();
+            
+            // Reload submissions to show updated stats
+            loadArenaSubmissions();
+        } else {
+            throw new Error(result.error || 'Failed to submit vote');
+        }
+    } catch (error) {
+        console.error('Error submitting vote:', error);
+        alert('Error: ' + error.message);
+    }
+}
+
+// Add "Submit to Arena" functionality to existing modes
+function setupArenaButtonForRater() {
+    const arenaSection = document.getElementById('rater-arena-section');
+    const arenaButton = document.getElementById('rater-arena-btn');
+    
+    if (arenaSection && arenaButton) {
+        arenaSection.style.display = 'block';
+        arenaButton.onclick = function() {
+            const occasionSelect = document.getElementById('rater-occasion');
+            let occasion = occasionSelect.value;
+            if (occasion === 'custom') {
+                occasion = document.getElementById('rater-custom-occasion').value;
+            }
+            openArenaModal(raterImageData, occasion, 'rater');
+        };
+    }
+}
+
+function addArenaButtonToGenerator() {
+    const resultsSection = document.getElementById('generator-results');
+    
+    // Check if button already exists
+    if (document.getElementById('generator-arena-btn')) return;
+    
+    const arenaButton = document.createElement('button');
+    arenaButton.id = 'generator-arena-btn';
+    arenaButton.className = 'btn-primary';
+    arenaButton.innerHTML = '<span class="btn-icon">🏆</span> Submit to Fashion Arena';
+    arenaButton.onclick = function() {
+        const generatedImage = document.getElementById('generated-image').src;
+        openArenaModal(generatedImage, lastGeneratorParams.occasion, 'generator');
+    };
+    
+    const actionButtons = resultsSection.querySelector('.action-buttons');
+    actionButtons.insertBefore(arenaButton, actionButtons.firstChild);
+}
+
+// Modify existing display functions to add arena buttons
+const originalDisplayRaterResults = displayRaterResults;
+displayRaterResults = function(data) {
+    originalDisplayRaterResults(data);
+    setupArenaButtonForRater();
+};
+
+const originalDisplayGeneratorResults = displayGeneratorResults;
+displayGeneratorResults = function(result) {
+    originalDisplayGeneratorResults(result);
+    addArenaButtonToGenerator();
+};

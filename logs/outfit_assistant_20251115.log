@@ -1,0 +1,185 @@
+2025-11-15 16:46:32,376 - __main__ - INFO - ============================================================
+2025-11-15 16:46:32,376 - __main__ - INFO - OUTFIT ASSISTANT APPLICATION STARTED
+2025-11-15 16:46:32,376 - __main__ - INFO - ============================================================
+2025-11-15 16:46:32,434 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.68.58:5000
+2025-11-15 16:46:32,435 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-11-15 16:46:32,438 - werkzeug - INFO -  * Restarting with stat
+2025-11-15 16:46:33,392 - __main__ - INFO - ============================================================
+2025-11-15 16:46:33,393 - __main__ - INFO - OUTFIT ASSISTANT APPLICATION STARTED
+2025-11-15 16:46:33,393 - __main__ - INFO - ============================================================
+2025-11-15 16:46:33,407 - werkzeug - WARNING -  * Debugger is active!
+2025-11-15 16:46:33,411 - werkzeug - INFO -  * Debugger PIN: 465-498-724
+2025-11-15 16:46:51,542 - werkzeug - INFO - 127.0.0.1 - - [15/Nov/2025 16:46:51] "GET /api/arena/submissions?sort_by=recent HTTP/1.1" 200 -
+2025-11-15 16:47:09,050 - werkzeug - INFO - 127.0.0.1 - - [15/Nov/2025 16:47:09] "OPTIONS /api/generate-outfit HTTP/1.1" 200 -
+2025-11-15 16:47:09,367 - __main__ - INFO - ============================================================
+2025-11-15 16:47:09,368 - __main__ - INFO - GENERATE OUTFIT REQUEST RECEIVED
+2025-11-15 16:47:09,368 - __main__ - INFO - ============================================================
+2025-11-15 16:47:09,369 - __main__ - INFO - Parameters:
+2025-11-15 16:47:09,369 - __main__ - INFO -   - Occasion: Business Meeting
+2025-11-15 16:47:09,369 - __main__ - INFO -   - Wow Factor: 5
+2025-11-15 16:47:09,369 - __main__ - INFO -   - Brands: []
+2025-11-15 16:47:09,370 - __main__ - INFO -   - Budget: USD 300
+2025-11-15 16:47:09,370 - __main__ - INFO -   - Conditions: 
+2025-11-15 16:47:09,370 - __main__ - INFO -   - User image provided: True
+2025-11-15 16:47:09,370 - __main__ - INFO - ------------------------------------------------------------
+2025-11-15 16:47:09,370 - __main__ - INFO - GPT-4 OUTFIT DESCRIPTION PROMPT:
+2025-11-15 16:47:09,371 - __main__ - INFO - Create a detailed outfit recommendation for Business Meeting.
+
+Style level: 5/10 (balanced, stylish, and modern)
+Preferences: within a budget of USD 300
+
+
+Provide:
+1. Complete outfit description (top, bottom, shoes, accessories)
+2. Color palette and why it works
+3. Style notes and occasion appropriateness
+4. 5-8 specific product recommendations with:
+   - Item type and description
+   - Estimated price
+   - Why it fits the outfit
+   
+Format as JSON:
+{
+  "outfit_concept": "<overall concept and inspiration>",
+  "items": [
+    {
+      "type": "<item type>",
+      "description": "<detailed description>",
+      "color": "<color>",
+      "style_notes": "<why this works>"
+    }
+  ],
+  "color_palette": "<description of colors and why they work>",
+  "occasion_notes": "<why this works for the occasion>",
+  "product_recommendations": [
+    {
+      "item": "<item name>",
+      "type": "<clothing type>",
+      "brand": "<suggested brand>",
+      "description": "<description>",
+      "price": "<estimated price>",
+      "reason": "<why recommended>"
+    }
+  ]
+}
+2025-11-15 16:47:09,371 - __main__ - INFO - ------------------------------------------------------------
+2025-11-15 16:47:09,371 - __main__ - INFO - Calling GPT-4 API...
+2025-11-15 16:47:31,122 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-11-15 16:47:31,139 - __main__ - INFO - GPT-4 Response received
+2025-11-15 16:47:31,139 - __main__ - INFO - Outfit Description: {
+  "outfit_concept": "Modern Professional with a Touch of Elegance",
+  "items": [
+    {
+      "type": "Top",
+      "description": "A crisp white button-down shirt with a tailored fit to maintain professionalism and add structure.",
+      "color": "White",
+      "style_notes": "The white shirt provides a clean and classic look, ideal for business settings."
+    },
+    {
+      "type": "Bottom",
+      "description": "Navy slim-fit trousers for a sleek and modern appearance, balancing the relaxed t...
+2025-11-15 16:47:31,140 - __main__ - INFO - Background selected: contemporary conference room with glass walls
+2025-11-15 16:47:31,140 - __main__ - INFO - Outfit details for image: A crisp white button-down shirt with a tailored fit to maintain professionalism and add structure. in White Navy slim-fit trousers for a sleek and modern appearance, balancing the relaxed top. in Navy Classic black loafers for a comfortable yet polished finish. in Black Silver watch for a touch of elegance without overwhelming the outfit. in Silver Simple black leather belt to complement the trousers. in Black
+2025-11-15 16:47:31,141 - __main__ - INFO - ============================================================
+2025-11-15 16:47:31,141 - __main__ - INFO - NANOBANANA API IMAGE GENERATION STARTED
+2025-11-15 16:47:31,141 - __main__ - INFO - ============================================================
+2025-11-15 16:47:31,141 - __main__ - INFO - Occasion: Business Meeting
+2025-11-15 16:47:31,142 - __main__ - INFO - Outfit: A crisp white button-down shirt with a tailored fit to maintain professionalism and add structure. in White Navy slim-fit trousers for a sleek and modern appearance, balancing the relaxed top. in Navy...
+2025-11-15 16:47:31,142 - __main__ - INFO - Background: contemporary conference room with glass walls
+2025-11-15 16:47:31,145 - __main__ - INFO - Person image saved: C:\Users\zenot\AppData\Local\Temp\tmpp72kwjvt.png
+2025-11-15 16:47:32,247 - httpx - INFO - HTTP Request: POST https://rest.alpha.fal.ai/storage/auth/token?storage_type=fal-cdn-v3 "HTTP/1.1 200 OK"
+2025-11-15 16:47:34,460 - httpx - INFO - HTTP Request: POST https://v3.fal.media/files/upload "HTTP/1.1 200 OK"
+2025-11-15 16:47:34,461 - __main__ - INFO - Image uploaded to CDN: https://v3b.fal.media/files/b/zebra/_ZiNdOfVd7rAaDxqHKDob_tmpp72kwjvt.png
+2025-11-15 16:47:34,461 - __main__ - INFO - ------------------------------------------------------------
+2025-11-15 16:47:34,461 - __main__ - INFO - NANOBANANA API PROMPT:
+2025-11-15 16:47:34,461 - __main__ - INFO - Transform this person wearing A crisp white button-down shirt with a tailored fit to maintain professionalism and add structure. in White Navy slim-fit trousers for a sleek and modern appearance, balancing the relaxed top. in Navy Classic black loafers for a comfortable yet polished finish. in Black Silver watch for a touch of elegance without overwhelming the outfit. in Silver Simple black leather belt to complement the trousers. in Black. 
+Setting: contemporary conference room with glass walls. 
+Occasion: Business Meeting. 
+Keep the same person's face and features exactly as in the original image. Natural pose appropriate for Business Meeting, facial expression matching the formality. 
+Photorealistic, professional fashion photography, magazine quality, 3/4 body shot with professional studio lighting.
+2025-11-15 16:47:34,462 - __main__ - INFO - ------------------------------------------------------------
+2025-11-15 16:47:34,462 - __main__ - INFO - Calling NanobananaAPI...
+2025-11-15 16:47:34,462 - __main__ - INFO - Request payload: {'prompt': "Transform this person wearing A crisp white button-down shirt with a tailored fit to maintain professionalism and add structure. in White Navy slim-fit trousers for a sleek and modern appearance, balancing the relaxed top. in Navy Classic black loafers for a comfortable yet polished finish. in Black Silver watch for a touch of elegance without overwhelming the outfit. in Silver Simple black leather belt to complement the trousers. in Black. \nSetting: contemporary conference room with glass walls. \nOccasion: Business Meeting. \nKeep the same person's face and features exactly as in the original image. Natural pose appropriate for Business Meeting, facial expression matching the formality. \nPhotorealistic, professional fashion photography, magazine quality, 3/4 body shot with professional studio lighting.", 'type': 'IMAGETOIAMGE', 'imageUrls': ['https://v3b.fal.media/files/b/zebra/_ZiNdOfVd7rAaDxqHKDob_tmpp72kwjvt.png'], 'numImages': 1, 'image_size': '3:4', 'callBackUrl': 'https://webhook.site/dummy'}
+2025-11-15 16:47:35,718 - __main__ - INFO - Task submitted: {'code': 200, 'msg': 'success', 'data': {'taskId': '8f88751a9a9cd72311ef031d4de7649a'}}
+2025-11-15 16:47:35,718 - __main__ - INFO - Task ID: 8f88751a9a9cd72311ef031d4de7649a
+2025-11-15 16:47:35,719 - __main__ - INFO - Polling for task completion...
+2025-11-15 16:47:38,308 - __main__ - INFO - Attempt 1: Full response = {'code': 200, 'msg': 'success', 'data': {'taskId': '8f88751a9a9cd72311ef031d4de7649a', 'paramJson': '{"callBackUrl":"https://webhook.site/dummy","imageSize":"3:4","imageUrls":["https://v3b.fal.media/files/b/zebra/_ZiNdOfVd7rAaDxqHKDob_tmpp72kwjvt.png"],"numImages":1,"prompt":"Transform this person wearing A crisp white button-down shirt with a tailored fit to maintain professionalism and add structure. in White Navy slim-fit trousers for a sleek and modern appearance, balancing the relaxed top. in Navy Classic black loafers for a comfortable yet polished finish. in Black Silver watch for a touch of elegance without overwhelming the outfit. in Silver Simple black leather belt to complement the trousers. in Black. \\nSetting: contemporary conference room with glass walls. \\nOccasion: Business Meeting. \\nKeep the same person\'s face and features exactly as in the original image. Natural pose appropriate for Business Meeting, facial expression matching the formality. \\nPhotorealistic, professional fashion photography, magazine quality, 3/4 body shot with professional studio lighting.","type":"IMAGETOIAMGE"}', 'completeTime': None, 'response': None, 'successFlag': 0, 'errorCode': None, 'errorMessage': None, 'createTime': '2025-11-15 16:47:36'}}
+2025-11-15 16:47:38,308 - __main__ - INFO - Attempt 1: successFlag = 0
+2025-11-15 16:47:41,209 - __main__ - INFO - Attempt 2: Full response = {'code': 200, 'msg': 'success', 'data': {'taskId': '8f88751a9a9cd72311ef031d4de7649a', 'paramJson': '{"callBackUrl":"https://webhook.site/dummy","imageSize":"3:4","imageUrls":["https://v3b.fal.media/files/b/zebra/_ZiNdOfVd7rAaDxqHKDob_tmpp72kwjvt.png"],"numImages":1,"prompt":"Transform this person wearing A crisp white button-down shirt with a tailored fit to maintain professionalism and add structure. in White Navy slim-fit trousers for a sleek and modern appearance, balancing the relaxed top. in Navy Classic black loafers for a comfortable yet polished finish. in Black Silver watch for a touch of elegance without overwhelming the outfit. in Silver Simple black leather belt to complement the trousers. in Black. \\nSetting: contemporary conference room with glass walls. \\nOccasion: Business Meeting. \\nKeep the same person\'s face and features exactly as in the original image. Natural pose appropriate for Business Meeting, facial expression matching the formality. \\nPhotorealistic, professional fashion photography, magazine quality, 3/4 body shot with professional studio lighting.","type":"IMAGETOIAMGE"}', 'completeTime': None, 'response': None, 'successFlag': 0, 'errorCode': None, 'errorMessage': None, 'createTime': '2025-11-15 16:47:36'}}
+2025-11-15 16:47:41,210 - __main__ - INFO - Attempt 2: successFlag = 0
+2025-11-15 16:47:44,281 - __main__ - INFO - Attempt 3: Full response = {'code': 200, 'msg': 'success', 'data': {'taskId': '8f88751a9a9cd72311ef031d4de7649a', 'paramJson': '{"callBackUrl":"https://webhook.site/dummy","imageSize":"3:4","imageUrls":["https://v3b.fal.media/files/b/zebra/_ZiNdOfVd7rAaDxqHKDob_tmpp72kwjvt.png"],"numImages":1,"prompt":"Transform this person wearing A crisp white button-down shirt with a tailored fit to maintain professionalism and add structure. in White Navy slim-fit trousers for a sleek and modern appearance, balancing the relaxed top. in Navy Classic black loafers for a comfortable yet polished finish. in Black Silver watch for a touch of elegance without overwhelming the outfit. in Silver Simple black leather belt to complement the trousers. in Black. \\nSetting: contemporary conference room with glass walls. \\nOccasion: Business Meeting. \\nKeep the same person\'s face and features exactly as in the original image. Natural pose appropriate for Business Meeting, facial expression matching the formality. \\nPhotorealistic, professional fashion photography, magazine quality, 3/4 body shot with professional studio lighting.","type":"IMAGETOIAMGE"}', 'completeTime': None, 'response': None, 'successFlag': 0, 'errorCode': None, 'errorMessage': None, 'createTime': '2025-11-15 16:47:36'}}
+2025-11-15 16:47:44,281 - __main__ - INFO - Attempt 3: successFlag = 0
+2025-11-15 16:47:47,440 - __main__ - INFO - Attempt 4: Full response = {'code': 200, 'msg': 'success', 'data': {'taskId': '8f88751a9a9cd72311ef031d4de7649a', 'paramJson': '{"callBackUrl":"https://webhook.site/dummy","imageSize":"3:4","imageUrls":["https://v3b.fal.media/files/b/zebra/_ZiNdOfVd7rAaDxqHKDob_tmpp72kwjvt.png"],"numImages":1,"prompt":"Transform this person wearing A crisp white button-down shirt with a tailored fit to maintain professionalism and add structure. in White Navy slim-fit trousers for a sleek and modern appearance, balancing the relaxed top. in Navy Classic black loafers for a comfortable yet polished finish. in Black Silver watch for a touch of elegance without overwhelming the outfit. in Silver Simple black leather belt to complement the trousers. in Black. \\nSetting: contemporary conference room with glass walls. \\nOccasion: Business Meeting. \\nKeep the same person\'s face and features exactly as in the original image. Natural pose appropriate for Business Meeting, facial expression matching the formality. \\nPhotorealistic, professional fashion photography, magazine quality, 3/4 body shot with professional studio lighting.","type":"IMAGETOIAMGE"}', 'completeTime': None, 'response': None, 'successFlag': 0, 'errorCode': None, 'errorMessage': None, 'createTime': '2025-11-15 16:47:36'}}
+2025-11-15 16:47:47,440 - __main__ - INFO - Attempt 4: successFlag = 0
+2025-11-15 16:47:50,574 - __main__ - INFO - Attempt 5: Full response = {'code': 200, 'msg': 'success', 'data': {'taskId': '8f88751a9a9cd72311ef031d4de7649a', 'paramJson': '{"callBackUrl":"https://webhook.site/dummy","imageSize":"3:4","imageUrls":["https://v3b.fal.media/files/b/zebra/_ZiNdOfVd7rAaDxqHKDob_tmpp72kwjvt.png"],"numImages":1,"prompt":"Transform this person wearing A crisp white button-down shirt with a tailored fit to maintain professionalism and add structure. in White Navy slim-fit trousers for a sleek and modern appearance, balancing the relaxed top. in Navy Classic black loafers for a comfortable yet polished finish. in Black Silver watch for a touch of elegance without overwhelming the outfit. in Silver Simple black leather belt to complement the trousers. in Black. \\nSetting: contemporary conference room with glass walls. \\nOccasion: Business Meeting. \\nKeep the same person\'s face and features exactly as in the original image. Natural pose appropriate for Business Meeting, facial expression matching the formality. \\nPhotorealistic, professional fashion photography, magazine quality, 3/4 body shot with professional studio lighting.","type":"IMAGETOIAMGE"}', 'completeTime': '2025-11-15 16:47:50', 'response': {'originImageUrl': None, 'resultImageUrl': 'https://tempfile.aiquickdraw.com/workers/nano/image_1763196469542_ci14zs_3x4_768x1024.png'}, 'successFlag': 1, 'errorCode': None, 'errorMessage': None, 'createTime': '2025-11-15 16:47:50'}}
+2025-11-15 16:47:50,574 - __main__ - INFO - Attempt 5: successFlag = 1
+2025-11-15 16:47:50,575 - __main__ - INFO - Generated image URL: https://tempfile.aiquickdraw.com/workers/nano/image_1763196469542_ci14zs_3x4_768x1024.png
+2025-11-15 16:47:51,521 - __main__ - INFO - Image downloaded: 1939088 bytes
+2025-11-15 16:47:51,575 - __main__ - INFO - Image size: 116252 bytes
+2025-11-15 16:47:51,576 - __main__ - INFO - ============================================================
+2025-11-15 16:47:51,576 - __main__ - INFO - IMAGE GENERATION COMPLETE
+2025-11-15 16:47:51,576 - __main__ - INFO - ============================================================
+2025-11-15 16:47:51,580 - werkzeug - INFO - 127.0.0.1 - - [15/Nov/2025 16:47:51] "POST /api/generate-outfit HTTP/1.1" 200 -
+2025-11-15 16:48:17,971 - werkzeug - INFO - 127.0.0.1 - - [15/Nov/2025 16:48:17] "OPTIONS /api/arena/submit HTTP/1.1" 200 -
+2025-11-15 16:48:18,228 - __main__ - INFO - ============================================================
+2025-11-15 16:48:18,229 - __main__ - INFO - FASHION ARENA SUBMISSION REQUEST
+2025-11-15 16:48:18,229 - __main__ - INFO - ============================================================
+2025-11-15 16:48:18,230 - __main__ - INFO - Submission - Title: Meeting Taj, Occasion: Business Meeting, Source: generator
+2025-11-15 16:48:18,232 - __main__ - INFO - Submission successful - ID: 636d3e9a-8e2f-42f2-9318-b7768be76ff3
+2025-11-15 16:48:18,233 - werkzeug - INFO - 127.0.0.1 - - [15/Nov/2025 16:48:18] "POST /api/arena/submit HTTP/1.1" 200 -
+2025-11-15 16:48:19,923 - werkzeug - INFO - 127.0.0.1 - - [15/Nov/2025 16:48:19] "GET /api/arena/submissions?sort_by=recent HTTP/1.1" 200 -
+2025-11-15 16:48:32,634 - werkzeug - INFO - 127.0.0.1 - - [15/Nov/2025 16:48:32] "GET /api/arena/submission/636d3e9a-8e2f-42f2-9318-b7768be76ff3 HTTP/1.1" 200 -
+2025-11-15 16:48:38,398 - werkzeug - INFO - 127.0.0.1 - - [15/Nov/2025 16:48:38] "OPTIONS /api/arena/vote HTTP/1.1" 200 -
+2025-11-15 16:48:38,708 - __main__ - INFO - Vote received - Submission: 636d3e9a-8e2f-42f2-9318-b7768be76ff3, Type: upvote, Rating: 8
+2025-11-15 16:48:38,711 - werkzeug - INFO - 127.0.0.1 - - [15/Nov/2025 16:48:38] "POST /api/arena/vote HTTP/1.1" 200 -
+2025-11-15 16:48:40,319 - werkzeug - INFO - 127.0.0.1 - - [15/Nov/2025 16:48:40] "GET /api/arena/submissions?sort_by=recent HTTP/1.1" 200 -
+2025-11-15 16:48:46,672 - werkzeug - INFO - 127.0.0.1 - - [15/Nov/2025 16:48:46] "GET /api/arena/leaderboard?limit=10 HTTP/1.1" 200 -
+2025-11-15 16:48:49,479 - werkzeug - INFO - 127.0.0.1 - - [15/Nov/2025 16:48:49] "GET /api/arena/submissions?sort_by=recent HTTP/1.1" 200 -
+2025-11-15 16:48:50,360 - werkzeug - INFO - 127.0.0.1 - - [15/Nov/2025 16:48:50] "GET /api/arena/submissions?sort_by=recent HTTP/1.1" 200 -
+2025-11-15 16:49:04,691 - werkzeug - INFO - 127.0.0.1 - - [15/Nov/2025 16:49:04] "OPTIONS /api/rate-outfit HTTP/1.1" 200 -
+2025-11-15 16:49:04,999 - __main__ - INFO - ============================================================
+2025-11-15 16:49:04,999 - __main__ - INFO - RATE OUTFIT REQUEST RECEIVED
+2025-11-15 16:49:04,999 - __main__ - INFO - ============================================================
+2025-11-15 16:49:05,000 - __main__ - INFO - Parameters - Occasion: Casual Outing, Budget: 
+2025-11-15 16:49:18,085 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-11-15 16:49:18,086 - werkzeug - INFO - 127.0.0.1 - - [15/Nov/2025 16:49:18] "POST /api/rate-outfit HTTP/1.1" 200 -
+2025-11-15 17:22:53,846 - __main__ - INFO - ============================================================
+2025-11-15 17:22:53,846 - __main__ - INFO - OUTFIT ASSISTANT APPLICATION STARTED
+2025-11-15 17:22:53,846 - __main__ - INFO - ============================================================
+2025-11-15 17:22:53,879 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.68.58:5000
+2025-11-15 17:22:53,880 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-11-15 17:22:53,882 - werkzeug - INFO -  * Restarting with stat
+2025-11-15 17:22:54,930 - __main__ - INFO - ============================================================
+2025-11-15 17:22:54,931 - __main__ - INFO - OUTFIT ASSISTANT APPLICATION STARTED
+2025-11-15 17:22:54,931 - __main__ - INFO - ============================================================
+2025-11-15 17:22:54,959 - werkzeug - WARNING -  * Debugger is active!
+2025-11-15 17:22:54,964 - werkzeug - INFO -  * Debugger PIN: 465-498-724
+2025-11-15 17:23:11,394 - werkzeug - INFO - 127.0.0.1 - - [15/Nov/2025 17:23:11] "OPTIONS /api/rate-outfit HTTP/1.1" 200 -
+2025-11-15 17:23:11,648 - __main__ - INFO - ============================================================
+2025-11-15 17:23:11,648 - __main__ - INFO - RATE OUTFIT REQUEST RECEIVED
+2025-11-15 17:23:11,649 - __main__ - INFO - ============================================================
+2025-11-15 17:23:11,649 - __main__ - INFO - Parameters - Occasion: Casual Outing, Budget: 
+2025-11-15 17:23:24,530 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-11-15 17:23:24,536 - werkzeug - INFO - 127.0.0.1 - - [15/Nov/2025 17:23:24] "POST /api/rate-outfit HTTP/1.1" 200 -
+2025-11-15 17:23:44,296 - werkzeug - INFO - 127.0.0.1 - - [15/Nov/2025 17:23:44] "OPTIONS /api/arena/submit HTTP/1.1" 200 -
+2025-11-15 17:23:44,617 - __main__ - INFO - ============================================================
+2025-11-15 17:23:44,618 - __main__ - INFO - FASHION ARENA SUBMISSION REQUEST
+2025-11-15 17:23:44,618 - __main__ - INFO - ============================================================
+2025-11-15 17:23:44,621 - __main__ - INFO - Submission - Title: First Test, Occasion: Casual Outing, Source: rater
+2025-11-15 17:23:44,626 - __main__ - INFO - Submission successful - ID: e0874043-62b2-4da8-9483-299a58e5d50a
+2025-11-15 17:23:44,628 - werkzeug - INFO - 127.0.0.1 - - [15/Nov/2025 17:23:44] "POST /api/arena/submit HTTP/1.1" 200 -
+2025-11-15 17:23:46,311 - werkzeug - INFO - 127.0.0.1 - - [15/Nov/2025 17:23:46] "GET /api/arena/submissions?sort_by=recent HTTP/1.1" 200 -
+2025-11-15 17:23:47,589 - werkzeug - INFO - 127.0.0.1 - - [15/Nov/2025 17:23:47] "GET /api/arena/submissions?sort_by=recent HTTP/1.1" 200 -
+2025-11-15 17:23:58,884 - werkzeug - INFO - 127.0.0.1 - - [15/Nov/2025 17:23:58] "GET /api/arena/submission/e0874043-62b2-4da8-9483-299a58e5d50a HTTP/1.1" 200 -
+2025-11-15 17:24:09,284 - werkzeug - INFO - 127.0.0.1 - - [15/Nov/2025 17:24:09] "OPTIONS /api/arena/vote HTTP/1.1" 200 -
+2025-11-15 17:24:09,548 - __main__ - INFO - Vote received - Submission: e0874043-62b2-4da8-9483-299a58e5d50a, Type: upvote, Rating: 9
+2025-11-15 17:24:09,552 - werkzeug - INFO - 127.0.0.1 - - [15/Nov/2025 17:24:09] "POST /api/arena/vote HTTP/1.1" 200 -
+2025-11-15 17:24:11,698 - werkzeug - INFO - 127.0.0.1 - - [15/Nov/2025 17:24:11] "GET /api/arena/submissions?sort_by=recent HTTP/1.1" 200 -
+2025-11-15 17:24:21,499 - werkzeug - INFO - 127.0.0.1 - - [15/Nov/2025 17:24:21] "GET /api/arena/leaderboard?limit=10 HTTP/1.1" 200 -
+2025-11-15 17:24:26,386 - werkzeug - INFO - 127.0.0.1 - - [15/Nov/2025 17:24:26] "GET /api/arena/submissions?sort_by=recent HTTP/1.1" 200 -
