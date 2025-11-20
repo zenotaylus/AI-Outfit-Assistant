@@ -35,7 +35,20 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-CORS(app)
+
+# Configure CORS to allow requests from Vercel and localhost
+CORS(app, resources={
+    r"/api/*": {
+        "origins": [
+            "https://ai-outfit-assistant.vercel.app",
+            "http://localhost:*",
+            "http://127.0.0.1:*"
+        ],
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"],
+        "supports_credentials": True
+    }
+})
 
 logger.info("="*60)
 logger.info("OUTFIT ASSISTANT APPLICATION STARTED")
