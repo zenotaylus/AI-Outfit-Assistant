@@ -334,6 +334,7 @@ Then provide detailed feedback including:
 - Areas for improvement
 - Specific suggestions for colors, fit, accessories
 - 3-5 shopping recommendations with descriptions
+- A humorous "roast" - brutally honest, witty, and playful criticism about the outfit (2-3 sentences, make it funny but not mean-spirited)
 
 Format your response as JSON with this structure:
 {{
@@ -346,6 +347,7 @@ Format your response as JSON with this structure:
   "strengths": ["<strength1>", "<strength2>", ...],
   "improvements": ["<improvement1>", "<improvement2>", ...],
   "suggestions": ["<suggestion1>", "<suggestion2>", ...],
+  "roast": "<humorous witty roast of the outfit>",
   "shopping_recommendations": [
     {{
       "item": "<item name>",

@@ -237,6 +237,15 @@ function displayRaterResults(data) {
         shoppingGrid.appendChild(itemDiv);
     });
 
+    // Display roast (if available)
+    if (data.roast) {
+        document.getElementById('roast-text').textContent = data.roast;
+        document.getElementById('roast-section').style.display = 'block';
+        // Reset roast button and content visibility
+        document.getElementById('roast-reveal-btn').style.display = 'block';
+        document.getElementById('roast-content').style.display = 'none';
+    }
+
     // Show results
     document.getElementById('rater-results').style.display = 'block';
 
@@ -258,8 +267,23 @@ function resetRater() {
     // Hide results
     document.getElementById('rater-results').style.display = 'none';
 
+    // Hide roast section
+    document.getElementById('roast-section').style.display = 'none';
+
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function revealRoast() {
+    // Hide the button
+    document.getElementById('roast-reveal-btn').style.display = 'none';
+
+    // Show the roast content with animation
+    const roastContent = document.getElementById('roast-content');
+    roastContent.style.display = 'block';
+
+    // Smooth scroll to roast section
+    roastContent.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 // Generator Mode Initialization
