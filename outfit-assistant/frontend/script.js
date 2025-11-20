@@ -761,7 +761,6 @@ function createSubmissionCard(submission) {
         <div class="arena-card-image" data-submission-id="${submission.id}">
             <img src="${submission.photo}" alt="${submission.title}">
             <div class="arena-card-badge">${sourceIcon} ${submission.source_mode}</div>
-            <button class="delete-submission-btn" data-submission-id="${submission.id}" title="Delete submission">🗑️</button>
         </div>
         <div class="arena-card-content">
             <h4>${submission.title}</h4>
@@ -772,6 +771,7 @@ function createSubmissionCard(submission) {
                     <span class="like-icon">👍</span>
                     <span class="like-count">${likes}</span>
                 </span>
+                <button class="delete-submission-btn" data-submission-id="${submission.id}" title="Delete submission">🗑️ Delete</button>
             </div>
         </div>
     `;
@@ -985,7 +985,7 @@ async function likeSubmission(submissionId) {
 // Delete Submission (password protected)
 async function deleteSubmission(submissionId) {
     // Prompt for password
-    const password = prompt('Enter password to delete this submission:');
+    const password = prompt('Contact the developer (names at the bottom) or enter password to delete this submission:');
 
     if (!password) {
         return; // User cancelled
