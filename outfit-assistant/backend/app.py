@@ -787,6 +787,36 @@ def restore_arena_data():
         logger.error(f"Error in restore_arena_data: {e}")
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/arena/like', methods=['POST'])
+def like_submission():
+    """
+    Like a Fashion Arena submission (simple increment)
+    """
+    try:
+        data = request.json
+
+        submission_id = data.get('submission_id')
+
+        if not submission_id:
+            return jsonify({"error": "No submission_id provided"}), 400
+
+        logger.info(f"Like received - Submission: {submission_id}")
+
+        # Like submission
+        updated_submission = fashion_arena.like_submission(submission_id)
+
+        if not updated_submission:
+            return jsonify({"error": "Submission not found"}), 404
+
+        return jsonify({
+            "success": True,
+            "submission": updated_submission
+        })
+
+    except Exception as e:
+        logger.error(f"Error in like_submission: {e}")
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == '__main__':
     # Check if API key is configured
     if not os.getenv('OPENAI_API_KEY'):

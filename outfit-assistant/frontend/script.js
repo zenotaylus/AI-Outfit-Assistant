@@ -653,9 +653,10 @@ function displayArenaSubmissions(submissions) {
         card.className = 'arena-card';
 
         const sourceIcon = submission.source_mode === 'rater' ? '⭐' : '🎨';
+        const likes = submission.total_votes || 0;
 
         card.innerHTML = `
-            <div class="arena-card-image">
+            <div class="arena-card-image" data-submission-id="${submission.id}">
                 <img src="${submission.photo}" alt="${submission.title}">
                 <div class="arena-card-badge">${sourceIcon} ${submission.source_mode}</div>
             </div>
@@ -664,15 +665,25 @@ function displayArenaSubmissions(submissions) {
                 <p class="arena-card-description">${submission.description || 'No description'}</p>
                 <div class="arena-card-occasion">${submission.occasion}</div>
                 <div class="arena-card-stats">
-                    <span>👍 ${submission.total_votes}</span>
-                    <span>⭐ ${submission.average_rating.toFixed(1)}/10</span>
-                    <span>🗳️ ${submission.vote_count}</span>
+                    <span class="like-button" data-submission-id="${submission.id}">
+                        <span class="like-icon">👍</span>
+                        <span class="like-count">${likes}</span>
+                    </span>
                 </div>
-                <button class="btn-vote" onclick="openVoteModal('${submission.id}')">
-                    Rate & Vote
-                </button>
             </div>
         `;
+
+        // Add double-click handler to image
+        const imageContainer = card.querySelector('.arena-card-image');
+        imageContainer.addEventListener('dblclick', function() {
+            likeSubmission(submission.id);
+        });
+
+        // Add click handler to like button
+        const likeButton = card.querySelector('.like-button');
+        likeButton.addEventListener('click', function() {
+            likeSubmission(submission.id);
+        });
 
         grid.appendChild(card);
     });
@@ -717,6 +728,8 @@ function displayLeaderboard(leaderboard) {
             rankBadge = '<span class="rank rank-bronze">🥉 #3</span>';
         }
 
+        const likes = submission.total_votes || 0;
+
         item.innerHTML = `
             ${rankBadge}
             <div class="leaderboard-image">
@@ -725,13 +738,20 @@ function displayLeaderboard(leaderboard) {
             <div class="leaderboard-details">
                 <h4>${submission.title}</h4>
                 <div class="leaderboard-stats">
-                    <span>⭐ ${submission.average_rating.toFixed(1)}/10</span>
-                    <span>👍 ${submission.total_votes} votes</span>
-                    <span>🗳️ ${submission.vote_count} ratings</span>
+                    <span class="like-button" data-submission-id="${submission.id}">
+                        <span class="like-icon">👍</span>
+                        <span class="like-count">${likes}</span>
+                    </span>
                 </div>
                 <div class="leaderboard-occasion">${submission.occasion}</div>
             </div>
         `;
+
+        // Add click handler to like button
+        const likeButton = item.querySelector('.like-button');
+        likeButton.addEventListener('click', function() {
+            likeSubmission(submission.id);
+        });
 
         list.appendChild(item);
     });
@@ -791,6 +811,44 @@ async function handleArenaSubmit(e) {
     } catch (error) {
         console.error('Error submitting to arena:', error);
         alert('Error: ' + error.message);
+    }
+}
+
+// Like Submission (simplified voting)
+async function likeSubmission(submissionId) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/arena/like`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                submission_id: submissionId
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            // Update the like count in the UI without reloading
+            const likeButtons = document.querySelectorAll(`[data-submission-id="${submissionId}"]`);
+            likeButtons.forEach(button => {
+                const likeCountSpan = button.querySelector('.like-count');
+                if (likeCountSpan) {
+                    likeCountSpan.textContent = result.submission.total_votes;
+                }
+            });
+
+            // Show a brief visual feedback
+            likeButtons.forEach(button => {
+                button.classList.add('liked');
+                setTimeout(() => button.classList.remove('liked'), 300);
+            });
+        } else {
+            throw new Error(result.error || 'Failed to like submission');
+        }
+    } catch (error) {
+        console.error('Error liking submission:', error);
     }
 }
 

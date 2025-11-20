@@ -227,3 +227,32 @@ def restore_data(backup_data):
         return len(backup_data.get("submissions", []))
     except Exception as e:
         raise Exception(f"Restore failed: {str(e)}")
+
+def like_submission(submission_id):
+    """
+    Simple like functionality - increments total_votes by 1
+
+    Args:
+        submission_id: ID of the submission to like
+
+    Returns:
+        dict: Updated submission or None if not found
+    """
+    db = load_db()
+
+    # Find the submission
+    submission = None
+    for sub in db["submissions"]:
+        if sub["id"] == submission_id:
+            submission = sub
+            break
+
+    if not submission:
+        return None
+
+    # Increment the like count
+    submission["total_votes"] = submission.get("total_votes", 0) + 1
+
+    save_db(db)
+
+    return submission
