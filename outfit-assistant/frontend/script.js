@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', function () {
     initializeModeSwitch();
     initializeRaterMode();
     initializeGeneratorMode();
+    setupInfiniteScroll();
 });
 
 // Mode Switching
@@ -622,6 +623,12 @@ function switchArenaTab(tabName) {
     }
 }
 
+// Pagination state
+let allSubmissions = [];
+let displayedCount = 0;
+const ITEMS_PER_PAGE = 12; // Load 12 items initially and per scroll
+let isLoadingMore = false;
+
 // Load Arena Submissions
 async function loadArenaSubmissions() {
     const sortBy = document.getElementById('arena-sort').value;
@@ -629,12 +636,21 @@ async function loadArenaSubmissions() {
 
     grid.innerHTML = '<div class="loading-message">Loading submissions...</div>';
 
+    // Reset pagination state
+    allSubmissions = [];
+    displayedCount = 0;
+
     try {
         const response = await fetch(`${API_BASE_URL}/arena/submissions?sort_by=${sortBy}`);
         const result = await response.json();
 
         if (result.success && result.submissions.length > 0) {
-            displayArenaSubmissions(result.submissions);
+            allSubmissions = result.submissions;
+            grid.innerHTML = ''; // Clear loading message
+            displayNextBatch();
+
+            // Add loading indicator at the end
+            addLoadingIndicator();
         } else {
             grid.innerHTML = '<div class="empty-message">No submissions yet. Be the first to share your style! 🌟</div>';
         }
@@ -644,52 +660,129 @@ async function loadArenaSubmissions() {
     }
 }
 
-function displayArenaSubmissions(submissions) {
+// Display next batch of submissions
+function displayNextBatch() {
+    if (isLoadingMore || displayedCount >= allSubmissions.length) {
+        return;
+    }
+
+    isLoadingMore = true;
     const grid = document.getElementById('arena-submissions-grid');
-    grid.innerHTML = '';
 
-    submissions.forEach(submission => {
-        const card = document.createElement('div');
-        card.className = 'arena-card';
+    // Get loading indicator if it exists
+    const loadingIndicator = document.getElementById('loading-more');
+    if (loadingIndicator) {
+        loadingIndicator.style.display = 'block';
+    }
 
-        const sourceIcon = submission.source_mode === 'rater' ? '⭐' : '🎨';
-        const likes = submission.total_votes || 0;
+    // Get next batch of submissions
+    const nextBatch = allSubmissions.slice(displayedCount, displayedCount + ITEMS_PER_PAGE);
 
-        card.innerHTML = `
-            <div class="arena-card-image" data-submission-id="${submission.id}">
-                <img src="${submission.photo}" alt="${submission.title}">
-                <div class="arena-card-badge">${sourceIcon} ${submission.source_mode}</div>
-            </div>
-            <div class="arena-card-content">
-                <h4>${submission.title}</h4>
-                <p class="arena-card-description">${submission.description || 'No description'}</p>
-                <div class="arena-card-occasion">${submission.occasion}</div>
-                <div class="arena-card-stats">
-                    <span class="like-button" data-submission-id="${submission.id}">
-                        <span class="like-icon">👍</span>
-                        <span class="like-count">${likes}</span>
-                    </span>
-                </div>
-            </div>
-        `;
+    // Add a small delay for smooth loading experience
+    setTimeout(() => {
+        nextBatch.forEach(submission => {
+            const card = createSubmissionCard(submission);
 
-        // Add double-click handler to image with heart animation
-        const imageContainer = card.querySelector('.arena-card-image');
-        imageContainer.addEventListener('dblclick', function(e) {
-            // Show heart animation
-            showHeartAnimation(imageContainer);
-
-            // Like the submission
-            likeSubmission(submission.id);
+            // Insert before loading indicator if it exists
+            if (loadingIndicator) {
+                grid.insertBefore(card, loadingIndicator);
+            } else {
+                grid.appendChild(card);
+            }
         });
 
-        // Add click handler to like button
-        const likeButton = card.querySelector('.like-button');
-        likeButton.addEventListener('click', function() {
-            likeSubmission(submission.id);
-        });
+        displayedCount += nextBatch.length;
 
-        grid.appendChild(card);
+        // Hide loading indicator
+        if (loadingIndicator) {
+            loadingIndicator.style.display = 'none';
+        }
+
+        // Remove loading indicator if all items are loaded
+        if (displayedCount >= allSubmissions.length && loadingIndicator) {
+            loadingIndicator.remove();
+        }
+
+        isLoadingMore = false;
+    }, 300); // Smooth loading delay
+}
+
+// Add loading indicator
+function addLoadingIndicator() {
+    const grid = document.getElementById('arena-submissions-grid');
+    const indicator = document.createElement('div');
+    indicator.id = 'loading-more';
+    indicator.className = 'loading-more-indicator';
+    indicator.innerHTML = '<div class="spinner"></div><p>Loading more...</p>';
+    indicator.style.display = 'none';
+    grid.appendChild(indicator);
+}
+
+// Create a single submission card
+function createSubmissionCard(submission) {
+    const card = document.createElement('div');
+    card.className = 'arena-card';
+
+    const sourceIcon = submission.source_mode === 'rater' ? '⭐' : '🎨';
+    const likes = submission.total_votes || 0;
+
+    card.innerHTML = `
+        <div class="arena-card-image" data-submission-id="${submission.id}">
+            <img src="${submission.photo}" alt="${submission.title}">
+            <div class="arena-card-badge">${sourceIcon} ${submission.source_mode}</div>
+        </div>
+        <div class="arena-card-content">
+            <h4>${submission.title}</h4>
+            <p class="arena-card-description">${submission.description || 'No description'}</p>
+            <div class="arena-card-occasion">${submission.occasion}</div>
+            <div class="arena-card-stats">
+                <span class="like-button" data-submission-id="${submission.id}">
+                    <span class="like-icon">👍</span>
+                    <span class="like-count">${likes}</span>
+                </span>
+            </div>
+        </div>
+    `;
+
+    // Add double-click handler to image with heart animation
+    const imageContainer = card.querySelector('.arena-card-image');
+    imageContainer.addEventListener('dblclick', function(e) {
+        // Show heart animation
+        showHeartAnimation(imageContainer);
+
+        // Like the submission
+        likeSubmission(submission.id);
+    });
+
+    // Add click handler to like button
+    const likeButton = card.querySelector('.like-button');
+    likeButton.addEventListener('click', function() {
+        likeSubmission(submission.id);
+    });
+
+    return card;
+}
+
+// Infinite scroll detection
+function setupInfiniteScroll() {
+    const container = document.querySelector('.container');
+
+    // Debounce scroll event for better performance
+    let scrollTimeout;
+    container.addEventListener('scroll', function() {
+        if (scrollTimeout) {
+            clearTimeout(scrollTimeout);
+        }
+
+        scrollTimeout = setTimeout(() => {
+            const scrollPosition = container.scrollTop + container.clientHeight;
+            const scrollHeight = container.scrollHeight;
+
+            // Load more when user is 300px from bottom
+            if (scrollHeight - scrollPosition < 300 && !isLoadingMore && displayedCount < allSubmissions.length) {
+                displayNextBatch();
+            }
+        }, 100); // Debounce 100ms
     });
 }
 

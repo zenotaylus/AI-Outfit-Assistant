@@ -1579,6 +1579,42 @@ footer {
     font-style: italic;
 }
 
+/* Loading More Indicator */
+.loading-more-indicator {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 40px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.loading-more-indicator p {
+    color: #666;
+    font-size: 1rem;
+    margin: 0;
+}
+
+/* Spinner Animation */
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #d4af37;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
 /* Responsive Arena Styles */
 @media (max-width: 768px) {
     .arena-grid {
