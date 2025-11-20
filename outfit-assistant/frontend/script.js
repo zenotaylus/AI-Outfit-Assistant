@@ -171,6 +171,9 @@ async function handleRaterSubmit(e) {
         occasion = customOccasion.value;
     }
 
+    // Save occasion for later use
+    currentRaterOccasion = occasion;
+
     const budgetText = budget ? `${currency} ${budget}` : '';
 
     // Show loading
@@ -207,6 +210,11 @@ async function handleRaterSubmit(e) {
 }
 
 function displayRaterResults(data) {
+    // Display user's photo
+    if (raterImageData) {
+        document.getElementById('rater-result-photo').src = raterImageData;
+    }
+
     // Display scores
     document.getElementById('wow-score').textContent = data.wow_factor + '/10';
     document.getElementById('wow-explanation').textContent = data.wow_factor_explanation;
@@ -295,6 +303,54 @@ function resetRater() {
 
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function generateFromRaterRecommendations() {
+    // Check if we have the necessary data
+    if (!raterImageData) {
+        alert('No image data available. Please rate an outfit first.');
+        return;
+    }
+
+    // Copy rater image to generator
+    generatorImageData = raterImageData;
+
+    // Switch to generator mode
+    switchMode('generator');
+
+    // Pre-fill the generator form
+    const generatorPreview = document.getElementById('generator-preview');
+    const generatorUpload = document.getElementById('generator-upload');
+
+    generatorPreview.src = raterImageData;
+    generatorPreview.style.display = 'block';
+    generatorUpload.classList.add('has-image');
+    generatorUpload.querySelector('.upload-prompt').style.display = 'none';
+
+    // Pre-fill the occasion if available
+    if (currentRaterOccasion) {
+        const generatorOccasionSelect = document.getElementById('generator-occasion');
+        // Check if the occasion exists in the dropdown
+        const optionExists = Array.from(generatorOccasionSelect.options).some(
+            option => option.value === currentRaterOccasion
+        );
+
+        if (optionExists) {
+            generatorOccasionSelect.value = currentRaterOccasion;
+        } else {
+            // If it's a custom occasion, select custom and fill the input
+            generatorOccasionSelect.value = 'custom';
+            const customOccasionInput = document.getElementById('generator-custom-occasion');
+            customOccasionInput.value = currentRaterOccasion;
+            customOccasionInput.style.display = 'block';
+        }
+    }
+
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // Show a message to the user
+    alert('Ready to generate an improved outfit! Review the settings and click "Generate Outfit" when ready.');
 }
 
 function revealRoast() {
