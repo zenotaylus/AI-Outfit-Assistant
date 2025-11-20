@@ -12,6 +12,29 @@ let lastGeneratorParams = null;
 let currentRaterOccasion = null;
 let currentGeneratorOccasion = null;
 
+// Helper function to generate shopping URLs
+function generateShoppingButtons(itemName) {
+    const searchTerm = encodeURIComponent(itemName);
+
+    const amazonUrl = `https://www.amazon.com/s?k=${searchTerm}`;
+    const shopeeUrl = `https://shopee.sg/search?keyword=${searchTerm}`;
+    const lazadaUrl = `https://www.lazada.sg/catalog/?q=${searchTerm}`;
+
+    return `
+        <div class="shopping-buttons">
+            <a href="${amazonUrl}" target="_blank" rel="noopener noreferrer" class="btn-shop btn-amazon">
+                Amazon
+            </a>
+            <a href="${shopeeUrl}" target="_blank" rel="noopener noreferrer" class="btn-shop btn-shopee">
+                Shopee
+            </a>
+            <a href="${lazadaUrl}" target="_blank" rel="noopener noreferrer" class="btn-shop btn-lazada">
+                Lazada
+            </a>
+        </div>
+    `;
+}
+
 // Initialize app
 document.addEventListener('DOMContentLoaded', function () {
     initializeModeSwitch();
@@ -232,7 +255,7 @@ function displayRaterResults(data) {
             <div class="item-description">${item.description}</div>
             <div class="item-price">${item.price}</div>
             <div class="item-reason">${item.reason}</div>
-            <button class="btn-shop" onclick="alert('This is a demo MVP. In production, this would link to the actual product.')">Shop Now</button>
+            ${generateShoppingButtons(item.item)}
         `;
         shoppingGrid.appendChild(itemDiv);
     });
@@ -488,7 +511,7 @@ function displayGeneratorResults(result) {
             <div class="item-description">${item.description}</div>
             <div class="item-price">${item.price}</div>
             <div class="item-reason">${item.reason}</div>
-            <button class="btn-shop" onclick="alert('This is a demo MVP. In production, this would link to ${item.brand || 'the product'}.')">Shop Now</button>
+            ${generateShoppingButtons(item.item)}
         `;
         shoppingGrid.appendChild(itemDiv);
     });
