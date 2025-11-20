@@ -745,14 +745,46 @@ def get_arena_stats():
     """
     try:
         stats = fashion_arena.get_stats()
-        
+
         return jsonify({
             "success": True,
             "stats": stats
         })
-        
+
     except Exception as e:
         logger.error(f"Error in get_arena_stats: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/arena/restore', methods=['POST'])
+def restore_arena_data():
+    """
+    Restore Fashion Arena data from backup
+    """
+    try:
+        logger.info("="*60)
+        logger.info("FASHION ARENA DATA RESTORE REQUEST")
+        logger.info("="*60)
+
+        data = request.json
+
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+
+        logger.info(f"Restoring data...")
+
+        # Restore data
+        count = fashion_arena.restore_data(data)
+
+        logger.info(f"Successfully restored {count} submissions")
+
+        return jsonify({
+            "success": True,
+            "message": f"Successfully restored {count} submissions",
+            "count": count
+        })
+
+    except Exception as e:
+        logger.error(f"Error in restore_arena_data: {e}")
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':

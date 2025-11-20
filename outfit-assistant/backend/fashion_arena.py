@@ -201,3 +201,29 @@ def get_stats():
             sum(s["average_rating"] for s in db["submissions"]) / len(db["submissions"]), 2
         ) if db["submissions"] else 0
     }
+
+def restore_data(backup_data):
+    """
+    Restore Fashion Arena data from backup
+
+    Args:
+        backup_data: dict with 'submissions' and 'votes' keys
+
+    Returns:
+        int: Number of submissions restored
+    """
+    try:
+        # Validate backup data structure
+        if isinstance(backup_data, list):
+            # Handle list format (old backup)
+            backup_data = {"submissions": backup_data, "votes": {}}
+
+        if not isinstance(backup_data, dict) or "submissions" not in backup_data:
+            raise ValueError("Invalid backup format")
+
+        # Save the backup data directly
+        save_db(backup_data)
+
+        return len(backup_data.get("submissions", []))
+    except Exception as e:
+        raise Exception(f"Restore failed: {str(e)}")
