@@ -17,7 +17,6 @@ document.addEventListener('DOMContentLoaded', function () {
     initializeModeSwitch();
     initializeRaterMode();
     initializeGeneratorMode();
-    setupInfiniteScroll();
 });
 
 // Mode Switching
@@ -625,9 +624,8 @@ function switchArenaTab(tabName) {
 
 // Pagination state
 let allSubmissions = [];
-let displayedCount = 0;
-const ITEMS_PER_PAGE = 12; // Load 12 items initially and per scroll
-let isLoadingMore = false;
+let currentPage = 1;
+const ITEMS_PER_PAGE = 10; // Show 10 items per page
 
 // Load Arena Submissions
 async function loadArenaSubmissions() {
@@ -636,9 +634,8 @@ async function loadArenaSubmissions() {
 
     grid.innerHTML = '<div class="loading-message">Loading submissions...</div>';
 
-    // Reset pagination state
-    allSubmissions = [];
-    displayedCount = 0;
+    // Reset to page 1
+    currentPage = 1;
 
     try {
         const response = await fetch(`${API_BASE_URL}/arena/submissions?sort_by=${sortBy}`);
@@ -646,11 +643,7 @@ async function loadArenaSubmissions() {
 
         if (result.success && result.submissions.length > 0) {
             allSubmissions = result.submissions;
-            grid.innerHTML = ''; // Clear loading message
-            displayNextBatch();
-
-            // Add loading indicator at the end
-            addLoadingIndicator();
+            displayPage(currentPage);
         } else {
             grid.innerHTML = '<div class="empty-message">No submissions yet. Be the first to share your style! 🌟</div>';
         }
@@ -660,67 +653,100 @@ async function loadArenaSubmissions() {
     }
 }
 
-// Display next batch of submissions
-function displayNextBatch() {
-    if (isLoadingMore || displayedCount >= allSubmissions.length) {
-        console.log('Skipping batch:', { isLoadingMore, displayedCount, total: allSubmissions.length });
-        return;
-    }
-
-    console.log('Displaying batch:', { displayedCount, total: allSubmissions.length });
-    isLoadingMore = true;
+// Display specific page of submissions
+function displayPage(page) {
     const grid = document.getElementById('arena-submissions-grid');
+    grid.innerHTML = '';
 
-    // Get loading indicator if it exists
-    const loadingIndicator = document.getElementById('loading-more');
-    if (loadingIndicator) {
-        loadingIndicator.style.display = 'flex';
-    }
+    // Calculate start and end indices
+    const startIndex = (page - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    const pageSubmissions = allSubmissions.slice(startIndex, endIndex);
 
-    // Get next batch of submissions
-    const nextBatch = allSubmissions.slice(displayedCount, displayedCount + ITEMS_PER_PAGE);
-    console.log('Next batch size:', nextBatch.length);
+    // Display submissions for this page
+    pageSubmissions.forEach(submission => {
+        const card = createSubmissionCard(submission);
+        grid.appendChild(card);
+    });
 
-    // Add a small delay for smooth loading experience
-    setTimeout(() => {
-        nextBatch.forEach(submission => {
-            const card = createSubmissionCard(submission);
+    // Add pagination controls
+    addPaginationControls();
 
-            // Insert before loading indicator if it exists
-            if (loadingIndicator) {
-                grid.insertBefore(card, loadingIndicator);
-            } else {
-                grid.appendChild(card);
-            }
-        });
-
-        displayedCount += nextBatch.length;
-        console.log('Batch displayed. New count:', displayedCount);
-
-        // Hide loading indicator
-        if (loadingIndicator) {
-            loadingIndicator.style.display = 'none';
-        }
-
-        // Remove loading indicator if all items are loaded
-        if (displayedCount >= allSubmissions.length && loadingIndicator) {
-            console.log('All items loaded. Removing indicator.');
-            loadingIndicator.remove();
-        }
-
-        isLoadingMore = false;
-    }, 300); // Smooth loading delay
+    // Scroll to top of grid
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// Add loading indicator
-function addLoadingIndicator() {
+// Add pagination controls
+function addPaginationControls() {
     const grid = document.getElementById('arena-submissions-grid');
-    const indicator = document.createElement('div');
-    indicator.id = 'loading-more';
-    indicator.className = 'loading-more-indicator';
-    indicator.innerHTML = '<div class="spinner"></div><p>Loading more...</p>';
-    indicator.style.display = 'none';
-    grid.appendChild(indicator);
+    const totalPages = Math.ceil(allSubmissions.length / ITEMS_PER_PAGE);
+
+    if (totalPages <= 1) {
+        return; // No pagination needed
+    }
+
+    const paginationDiv = document.createElement('div');
+    paginationDiv.className = 'pagination-controls';
+    paginationDiv.id = 'pagination-controls';
+
+    let html = '<div class="pagination-buttons">';
+
+    // Previous button
+    if (currentPage > 1) {
+        html += `<button class="pagination-btn" onclick="goToPage(${currentPage - 1})">← Previous</button>`;
+    }
+
+    // Page numbers
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    // Adjust start if we're near the end
+    if (endPage - startPage < maxVisiblePages - 1) {
+        startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    // First page if not visible
+    if (startPage > 1) {
+        html += `<button class="pagination-btn" onclick="goToPage(1)">1</button>`;
+        if (startPage > 2) {
+            html += '<span class="pagination-dots">...</span>';
+        }
+    }
+
+    // Page number buttons
+    for (let i = startPage; i <= endPage; i++) {
+        if (i === currentPage) {
+            html += `<button class="pagination-btn active">${i}</button>`;
+        } else {
+            html += `<button class="pagination-btn" onclick="goToPage(${i})">${i}</button>`;
+        }
+    }
+
+    // Last page if not visible
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            html += '<span class="pagination-dots">...</span>';
+        }
+        html += `<button class="pagination-btn" onclick="goToPage(${totalPages})">${totalPages}</button>`;
+    }
+
+    // Next button
+    if (currentPage < totalPages) {
+        html += `<button class="pagination-btn" onclick="goToPage(${currentPage + 1})">Next →</button>`;
+    }
+
+    html += '</div>';
+    html += `<div class="pagination-info">Page ${currentPage} of ${totalPages} (${allSubmissions.length} items)</div>`;
+
+    paginationDiv.innerHTML = html;
+    grid.appendChild(paginationDiv);
+}
+
+// Go to specific page
+function goToPage(page) {
+    currentPage = page;
+    displayPage(page);
 }
 
 // Create a single submission card
@@ -768,39 +794,6 @@ function createSubmissionCard(submission) {
     return card;
 }
 
-// Infinite scroll detection
-function setupInfiniteScroll() {
-    // Debounce scroll event for better performance
-    let scrollTimeout;
-    window.addEventListener('scroll', function() {
-        if (scrollTimeout) {
-            clearTimeout(scrollTimeout);
-        }
-
-        scrollTimeout = setTimeout(() => {
-            // Check if we're in Fashion Arena mode
-            const arenaMode = document.getElementById('fashion-arena');
-            if (!arenaMode || arenaMode.style.display === 'none') {
-                return; // Not in arena mode, skip
-            }
-
-            // Check if we're on Browse & Vote tab
-            const browseTab = document.getElementById('arena-browse-vote');
-            if (!browseTab || browseTab.style.display === 'none') {
-                return; // Not on browse tab, skip
-            }
-
-            const scrollPosition = window.scrollY + window.innerHeight;
-            const scrollHeight = document.documentElement.scrollHeight;
-
-            // Load more when user is 500px from bottom
-            if (scrollHeight - scrollPosition < 500 && !isLoadingMore && displayedCount < allSubmissions.length) {
-                console.log('Loading more items...'); // Debug
-                displayNextBatch();
-            }
-        }, 100); // Debounce 100ms
-    });
-}
 
 // Load Leaderboard
 async function loadLeaderboard() {
