@@ -760,5 +760,7 @@ if __name__ == '__main__':
     if not os.getenv('OPENAI_API_KEY'):
         print("WARNING: OPENAI_API_KEY not found in environment variables")
         print("Please create a .env file with your OpenAI API key")
-    
-    app.run(debug=True, host='0.0.0.0', port=5000)
+
+    # Use Railway's PORT environment variable, fallback to 5000 for local development
+    port = int(os.getenv('PORT', 5000))
+    app.run(debug=False, host='0.0.0.0', port=port)
