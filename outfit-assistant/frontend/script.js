@@ -1,5 +1,7 @@
-// API Configuration
-const API_BASE_URL = 'http://localhost:5000/api';
+// API Configuration - Auto-detect environment
+const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:5000/api'  // Development
+    : 'https://ai-outfit-assistant-production.up.railway.app/api';  // Production - Railway backend
 
 // Global state
 let currentMode = 'rater';
@@ -11,7 +13,7 @@ let currentRaterOccasion = null;
 let currentGeneratorOccasion = null;
 
 // Initialize app
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     initializeModeSwitch();
     initializeRaterMode();
     initializeGeneratorMode();
@@ -20,9 +22,9 @@ document.addEventListener('DOMContentLoaded', function() {
 // Mode Switching
 function initializeModeSwitch() {
     const modeButtons = document.querySelectorAll('.mode-btn');
-    
+
     modeButtons.forEach(btn => {
-        btn.addEventListener('click', function() {
+        btn.addEventListener('click', function () {
             const mode = this.getAttribute('data-mode');
             switchMode(mode);
         });
@@ -31,7 +33,7 @@ function initializeModeSwitch() {
 
 function switchMode(mode) {
     currentMode = mode;
-    
+
     // Update buttons
     document.querySelectorAll('.mode-btn').forEach(btn => {
         btn.classList.remove('active');
@@ -39,12 +41,12 @@ function switchMode(mode) {
             btn.classList.add('active');
         }
     });
-    
+
     // Update content
     document.querySelectorAll('.mode-content').forEach(content => {
         content.classList.remove('active');
     });
-    
+
     if (mode === 'rater') {
         document.getElementById('rater-mode').classList.add('active');
     } else {
@@ -60,39 +62,39 @@ function initializeRaterMode() {
     const form = document.getElementById('rater-form');
     const occasionSelect = document.getElementById('rater-occasion');
     const customOccasion = document.getElementById('rater-custom-occasion');
-    
+
     // Upload area click
     uploadArea.addEventListener('click', () => fileInput.click());
-    
+
     // File input change
-    fileInput.addEventListener('change', function(e) {
+    fileInput.addEventListener('change', function (e) {
         if (e.target.files && e.target.files[0]) {
             handleRaterImageUpload(e.target.files[0]);
         }
     });
-    
+
     // Drag and drop
     uploadArea.addEventListener('dragover', (e) => {
         e.preventDefault();
         uploadArea.style.borderColor = '#667eea';
     });
-    
+
     uploadArea.addEventListener('dragleave', (e) => {
         e.preventDefault();
         uploadArea.style.borderColor = '#e0e0e0';
     });
-    
+
     uploadArea.addEventListener('drop', (e) => {
         e.preventDefault();
         uploadArea.style.borderColor = '#e0e0e0';
-        
+
         if (e.dataTransfer.files && e.dataTransfer.files[0]) {
             handleRaterImageUpload(e.dataTransfer.files[0]);
         }
     });
-    
+
     // Occasion select
-    occasionSelect.addEventListener('change', function() {
+    occasionSelect.addEventListener('change', function () {
         if (this.value === 'custom') {
             customOccasion.style.display = 'block';
             customOccasion.required = true;
@@ -101,7 +103,7 @@ function initializeRaterMode() {
             customOccasion.required = false;
         }
     });
-    
+
     // Form submission
     form.addEventListener('submit', handleRaterSubmit);
 }
@@ -112,14 +114,14 @@ function handleRaterImageUpload(file) {
         alert('File size must be less than 10MB');
         return;
     }
-    
+
     const reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = function (e) {
         raterImageData = e.target.result;
-        
+
         const preview = document.getElementById('rater-preview');
         const uploadArea = document.getElementById('rater-upload');
-        
+
         preview.src = raterImageData;
         preview.style.display = 'block';
         uploadArea.classList.add('has-image');
@@ -130,28 +132,28 @@ function handleRaterImageUpload(file) {
 
 async function handleRaterSubmit(e) {
     e.preventDefault();
-    
+
     if (!raterImageData) {
         alert('Please upload an outfit photo');
         return;
     }
-    
+
     const occasionSelect = document.getElementById('rater-occasion');
     const customOccasion = document.getElementById('rater-custom-occasion');
     const currency = document.getElementById('rater-currency').value;
     const budget = document.getElementById('rater-budget').value;
-    
+
     let occasion = occasionSelect.value;
     if (occasion === 'custom') {
         occasion = customOccasion.value;
     }
-    
+
     const budgetText = budget ? `${currency} ${budget}` : '';
-    
+
     // Show loading
     document.getElementById('rater-form').style.display = 'none';
     document.getElementById('rater-loading').style.display = 'block';
-    
+
     try {
         const response = await fetch(`${API_BASE_URL}/rate-outfit`, {
             method: 'POST',
@@ -164,9 +166,9 @@ async function handleRaterSubmit(e) {
                 budget: budgetText
             })
         });
-        
+
         const result = await response.json();
-        
+
         if (result.success) {
             displayRaterResults(JSON.parse(result.data));
         } else {
@@ -185,13 +187,13 @@ function displayRaterResults(data) {
     // Display scores
     document.getElementById('wow-score').textContent = data.wow_factor + '/10';
     document.getElementById('wow-explanation').textContent = data.wow_factor_explanation;
-    
+
     document.getElementById('fitness-score').textContent = data.occasion_fitness + '/10';
     document.getElementById('fitness-explanation').textContent = data.occasion_fitness_explanation;
-    
+
     document.getElementById('overall-score').textContent = data.overall_rating + '/10';
     document.getElementById('overall-explanation').textContent = data.overall_explanation;
-    
+
     // Display strengths
     const strengthsList = document.getElementById('strengths-list');
     strengthsList.innerHTML = '';
@@ -200,7 +202,7 @@ function displayRaterResults(data) {
         li.textContent = strength;
         strengthsList.appendChild(li);
     });
-    
+
     // Display improvements
     const improvementsList = document.getElementById('improvements-list');
     improvementsList.innerHTML = '';
@@ -209,7 +211,7 @@ function displayRaterResults(data) {
         li.textContent = improvement;
         improvementsList.appendChild(li);
     });
-    
+
     // Display suggestions
     const suggestionsList = document.getElementById('suggestions-list');
     suggestionsList.innerHTML = '';
@@ -218,7 +220,7 @@ function displayRaterResults(data) {
         li.textContent = suggestion;
         suggestionsList.appendChild(li);
     });
-    
+
     // Display shopping recommendations
     const shoppingGrid = document.getElementById('shopping-grid');
     shoppingGrid.innerHTML = '';
@@ -234,10 +236,10 @@ function displayRaterResults(data) {
         `;
         shoppingGrid.appendChild(itemDiv);
     });
-    
+
     // Show results
     document.getElementById('rater-results').style.display = 'block';
-    
+
     // Scroll to results
     document.getElementById('rater-results').scrollIntoView({ behavior: 'smooth' });
 }
@@ -246,16 +248,16 @@ function resetRater() {
     // Reset form
     document.getElementById('rater-form').reset();
     document.getElementById('rater-form').style.display = 'block';
-    
+
     // Reset image
     raterImageData = null;
     document.getElementById('rater-preview').style.display = 'none';
     document.getElementById('rater-upload').classList.remove('has-image');
     document.getElementById('rater-upload').querySelector('.upload-prompt').style.display = 'block';
-    
+
     // Hide results
     document.getElementById('rater-results').style.display = 'none';
-    
+
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -269,42 +271,42 @@ function initializeGeneratorMode() {
     const wowSlider = document.getElementById('wow-slider');
     const occasionSelect = document.getElementById('generator-occasion');
     const customOccasion = document.getElementById('generator-custom-occasion');
-    
+
     // Upload area click
     uploadArea.addEventListener('click', () => fileInput.click());
-    
+
     // File input change
-    fileInput.addEventListener('change', function(e) {
+    fileInput.addEventListener('change', function (e) {
         if (e.target.files && e.target.files[0]) {
             handleGeneratorImageUpload(e.target.files[0]);
         }
     });
-    
+
     // Drag and drop
     uploadArea.addEventListener('dragover', (e) => {
         e.preventDefault();
         uploadArea.style.borderColor = '#667eea';
     });
-    
+
     uploadArea.addEventListener('dragleave', (e) => {
         e.preventDefault();
         uploadArea.style.borderColor = '#e0e0e0';
     });
-    
+
     uploadArea.addEventListener('drop', (e) => {
         e.preventDefault();
         uploadArea.style.borderColor = '#e0e0e0';
-        
+
         if (e.dataTransfer.files && e.dataTransfer.files[0]) {
             handleGeneratorImageUpload(e.dataTransfer.files[0]);
         }
     });
-    
+
     // Wow factor slider
-    wowSlider.addEventListener('input', function() {
+    wowSlider.addEventListener('input', function () {
         const value = parseInt(this.value);
         document.getElementById('wow-value').textContent = value;
-        
+
         let label;
         if (value <= 3) {
             label = 'Classic & Safe';
@@ -315,9 +317,9 @@ function initializeGeneratorMode() {
         }
         document.getElementById('wow-label').textContent = label;
     });
-    
+
     // Occasion select
-    occasionSelect.addEventListener('change', function() {
+    occasionSelect.addEventListener('change', function () {
         if (this.value === 'custom') {
             customOccasion.style.display = 'block';
             customOccasion.required = true;
@@ -326,7 +328,7 @@ function initializeGeneratorMode() {
             customOccasion.required = false;
         }
     });
-    
+
     // Form submission
     form.addEventListener('submit', handleGeneratorSubmit);
 }
@@ -337,14 +339,14 @@ function handleGeneratorImageUpload(file) {
         alert('File size must be less than 10MB');
         return;
     }
-    
+
     const reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = function (e) {
         generatorImageData = e.target.result;
-        
+
         const preview = document.getElementById('generator-preview');
         const uploadArea = document.getElementById('generator-upload');
-        
+
         preview.src = generatorImageData;
         preview.style.display = 'block';
         uploadArea.classList.add('has-image');
@@ -355,7 +357,7 @@ function handleGeneratorImageUpload(file) {
 
 async function handleGeneratorSubmit(e) {
     e.preventDefault();
-    
+
     const wowFactor = parseInt(document.getElementById('wow-slider').value);
     const brandsInput = document.getElementById('brands').value;
     const brands = brandsInput ? brandsInput.split(',').map(b => b.trim()).slice(0, 5) : [];
@@ -364,14 +366,14 @@ async function handleGeneratorSubmit(e) {
     const occasionSelect = document.getElementById('generator-occasion');
     const customOccasion = document.getElementById('generator-custom-occasion');
     const conditions = document.getElementById('conditions').value;
-    
+
     let occasion = occasionSelect.value;
     if (occasion === 'custom') {
         occasion = customOccasion.value;
     }
-    
+
     const budgetText = `${currency} ${budget}`;
-    
+
     // Save parameters for regeneration
     lastGeneratorParams = {
         user_image: generatorImageData,
@@ -381,11 +383,11 @@ async function handleGeneratorSubmit(e) {
         occasion: occasion,
         conditions: conditions
     };
-    
+
     // Show loading
     document.getElementById('generator-form').style.display = 'none';
     document.getElementById('generator-loading').style.display = 'block';
-    
+
     try {
         const response = await fetch(`${API_BASE_URL}/generate-outfit`, {
             method: 'POST',
@@ -394,9 +396,9 @@ async function handleGeneratorSubmit(e) {
             },
             body: JSON.stringify(lastGeneratorParams)
         });
-        
+
         const result = await response.json();
-        
+
         if (result.success) {
             displayGeneratorResults(result);
         } else {
@@ -413,13 +415,13 @@ async function handleGeneratorSubmit(e) {
 
 function displayGeneratorResults(result) {
     const data = JSON.parse(result.outfit_description);
-    
+
     // Display generated image
     document.getElementById('generated-image').src = result.outfit_image_url;
-    
+
     // Display outfit concept
     document.getElementById('outfit-concept').textContent = data.outfit_concept;
-    
+
     // Display outfit items
     const itemsContainer = document.getElementById('outfit-items');
     itemsContainer.innerHTML = '';
@@ -434,28 +436,28 @@ function displayGeneratorResults(result) {
         `;
         itemsContainer.appendChild(itemDiv);
     });
-    
+
     // Display color palette
     document.getElementById('color-palette').textContent = data.color_palette;
-    
+
     // Display occasion notes
     document.getElementById('occasion-notes').textContent = data.occasion_notes;
-    
+
     // Display shopping recommendations
     const shoppingGrid = document.getElementById('generator-shopping-grid');
     shoppingGrid.innerHTML = '';
     let totalCost = 0;
-    
+
     data.product_recommendations.forEach(item => {
         const itemDiv = document.createElement('div');
         itemDiv.className = 'shopping-item';
-        
+
         // Extract numeric price for total
         const priceMatch = item.price.match(/[\d,]+/);
         if (priceMatch) {
             totalCost += parseInt(priceMatch[0].replace(',', ''));
         }
-        
+
         itemDiv.innerHTML = `
             <div class="item-type">${item.type}</div>
             <h5>${item.item}</h5>
@@ -466,14 +468,14 @@ function displayGeneratorResults(result) {
         `;
         shoppingGrid.appendChild(itemDiv);
     });
-    
+
     // Display total cost
     const currency = lastGeneratorParams.budget.split(' ')[0];
     document.getElementById('total-cost').textContent = `${currency} ~${totalCost}`;
-    
+
     // Show results
     document.getElementById('generator-results').style.display = 'block';
-    
+
     // Scroll to results
     document.getElementById('generator-results').scrollIntoView({ behavior: 'smooth' });
 }
@@ -483,11 +485,11 @@ async function regenerateOutfit() {
         alert('No previous parameters found');
         return;
     }
-    
+
     // Hide results and show loading
     document.getElementById('generator-results').style.display = 'none';
     document.getElementById('generator-loading').style.display = 'block';
-    
+
     try {
         const response = await fetch(`${API_BASE_URL}/generate-outfit`, {
             method: 'POST',
@@ -496,9 +498,9 @@ async function regenerateOutfit() {
             },
             body: JSON.stringify(lastGeneratorParams)
         });
-        
+
         const result = await response.json();
-        
+
         if (result.success) {
             displayGeneratorResults(result);
         } else {
@@ -517,24 +519,24 @@ function resetGenerator() {
     // Reset form
     document.getElementById('generator-form').reset();
     document.getElementById('generator-form').style.display = 'block';
-    
+
     // Reset slider
     document.getElementById('wow-slider').value = 5;
     document.getElementById('wow-value').textContent = '5';
     document.getElementById('wow-label').textContent = 'Balanced & Stylish';
-    
+
     // Reset image
     generatorImageData = null;
     document.getElementById('generator-preview').style.display = 'none';
     document.getElementById('generator-upload').classList.remove('has-image');
     document.getElementById('generator-upload').querySelector('.upload-prompt').style.display = 'block';
-    
+
     // Hide results
     document.getElementById('generator-results').style.display = 'none';
-    
+
     // Clear saved params
     lastGeneratorParams = null;
-    
+
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -544,26 +546,26 @@ function resetGenerator() {
 // ============================================================================
 
 // Initialize Fashion Arena Mode
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Arena tab switching
     const arenaTabs = document.querySelectorAll('.arena-tab');
     arenaTabs.forEach(tab => {
-        tab.addEventListener('click', function() {
+        tab.addEventListener('click', function () {
             const tabName = this.getAttribute('data-tab');
             switchArenaTab(tabName);
         });
     });
-    
+
     // Arena submission form
     const arenaForm = document.getElementById('arena-submit-form');
     if (arenaForm) {
         arenaForm.addEventListener('submit', handleArenaSubmit);
     }
-    
+
     // Vote rating slider
     const voteRating = document.getElementById('vote-rating');
     if (voteRating) {
-        voteRating.addEventListener('input', function() {
+        voteRating.addEventListener('input', function () {
             document.getElementById('vote-rating-value').textContent = this.value;
         });
     }
@@ -572,7 +574,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // Update mode switching to include arena
 function switchMode(mode) {
     currentMode = mode;
-    
+
     // Update buttons
     document.querySelectorAll('.mode-btn').forEach(btn => {
         btn.classList.remove('active');
@@ -580,12 +582,12 @@ function switchMode(mode) {
             btn.classList.add('active');
         }
     });
-    
+
     // Update content
     document.querySelectorAll('.mode-content').forEach(content => {
         content.classList.remove('active');
     });
-    
+
     if (mode === 'rater') {
         document.getElementById('rater-mode').classList.add('active');
     } else if (mode === 'generator') {
@@ -605,12 +607,12 @@ function switchArenaTab(tabName) {
             tab.classList.add('active');
         }
     });
-    
+
     // Update sections
     document.querySelectorAll('.arena-section').forEach(section => {
         section.classList.remove('active');
     });
-    
+
     if (tabName === 'browse') {
         document.getElementById('arena-browse').classList.add('active');
         loadArenaSubmissions();
@@ -624,13 +626,13 @@ function switchArenaTab(tabName) {
 async function loadArenaSubmissions() {
     const sortBy = document.getElementById('arena-sort').value;
     const grid = document.getElementById('arena-submissions-grid');
-    
+
     grid.innerHTML = '<div class="loading-message">Loading submissions...</div>';
-    
+
     try {
         const response = await fetch(`${API_BASE_URL}/arena/submissions?sort_by=${sortBy}`);
         const result = await response.json();
-        
+
         if (result.success && result.submissions.length > 0) {
             displayArenaSubmissions(result.submissions);
         } else {
@@ -645,13 +647,13 @@ async function loadArenaSubmissions() {
 function displayArenaSubmissions(submissions) {
     const grid = document.getElementById('arena-submissions-grid');
     grid.innerHTML = '';
-    
+
     submissions.forEach(submission => {
         const card = document.createElement('div');
         card.className = 'arena-card';
-        
+
         const sourceIcon = submission.source_mode === 'rater' ? '⭐' : '🎨';
-        
+
         card.innerHTML = `
             <div class="arena-card-image">
                 <img src="${submission.photo}" alt="${submission.title}">
@@ -671,7 +673,7 @@ function displayArenaSubmissions(submissions) {
                 </button>
             </div>
         `;
-        
+
         grid.appendChild(card);
     });
 }
@@ -680,11 +682,11 @@ function displayArenaSubmissions(submissions) {
 async function loadLeaderboard() {
     const list = document.getElementById('leaderboard-list');
     list.innerHTML = '<div class="loading-message">Loading leaderboard...</div>';
-    
+
     try {
         const response = await fetch(`${API_BASE_URL}/arena/leaderboard?limit=10`);
         const result = await response.json();
-        
+
         if (result.success && result.leaderboard.length > 0) {
             displayLeaderboard(result.leaderboard);
         } else {
@@ -699,14 +701,14 @@ async function loadLeaderboard() {
 function displayLeaderboard(leaderboard) {
     const list = document.getElementById('leaderboard-list');
     list.innerHTML = '';
-    
+
     leaderboard.forEach((submission, index) => {
         const item = document.createElement('div');
         item.className = 'leaderboard-item';
-        
+
         const rank = index + 1;
         let rankBadge = `<span class="rank">#${rank}</span>`;
-        
+
         if (rank === 1) {
             rankBadge = '<span class="rank rank-gold">🥇 #1</span>';
         } else if (rank === 2) {
@@ -714,7 +716,7 @@ function displayLeaderboard(leaderboard) {
         } else if (rank === 3) {
             rankBadge = '<span class="rank rank-bronze">🥉 #3</span>';
         }
-        
+
         item.innerHTML = `
             ${rankBadge}
             <div class="leaderboard-image">
@@ -730,7 +732,7 @@ function displayLeaderboard(leaderboard) {
                 <div class="leaderboard-occasion">${submission.occasion}</div>
             </div>
         `;
-        
+
         list.appendChild(item);
     });
 }
@@ -752,13 +754,13 @@ function closeArenaModal() {
 // Handle Arena Submission
 async function handleArenaSubmit(e) {
     e.preventDefault();
-    
+
     const title = document.getElementById('arena-title').value;
     const description = document.getElementById('arena-description').value;
     const photo = document.getElementById('arena-photo-data').value;
     const occasion = document.getElementById('arena-occasion-data').value;
     const sourceMode = document.getElementById('arena-source-mode').value;
-    
+
     try {
         const response = await fetch(`${API_BASE_URL}/arena/submit`, {
             method: 'POST',
@@ -774,13 +776,13 @@ async function handleArenaSubmit(e) {
                 user_id: null // Can be extended to include user authentication
             })
         });
-        
+
         const result = await response.json();
-        
+
         if (result.success) {
             alert('🎉 Successfully submitted to Fashion Arena!');
             closeArenaModal();
-            
+
             // Switch to arena mode to see the submission
             switchMode('arena');
         } else {
@@ -797,10 +799,10 @@ async function openVoteModal(submissionId) {
     try {
         const response = await fetch(`${API_BASE_URL}/arena/submission/${submissionId}`);
         const result = await response.json();
-        
+
         if (result.success) {
             const submission = result.submission;
-            
+
             document.getElementById('vote-modal-preview').src = submission.photo;
             document.getElementById('vote-modal-title').textContent = submission.title;
             document.getElementById('vote-modal-description').textContent = submission.description || 'No description';
@@ -810,7 +812,7 @@ async function openVoteModal(submissionId) {
             document.getElementById('vote-submission-id').value = submissionId;
             document.getElementById('vote-rating').value = 5;
             document.getElementById('vote-rating-value').textContent = '5';
-            
+
             document.getElementById('vote-modal').style.display = 'flex';
         } else {
             throw new Error(result.error || 'Failed to load submission');
@@ -829,7 +831,7 @@ function closeVoteModal() {
 async function submitVote(voteType) {
     const submissionId = document.getElementById('vote-submission-id').value;
     const rating = parseInt(document.getElementById('vote-rating').value);
-    
+
     try {
         const response = await fetch(`${API_BASE_URL}/arena/vote`, {
             method: 'POST',
@@ -843,13 +845,13 @@ async function submitVote(voteType) {
                 voter_id: null // Can be extended to include user authentication
             })
         });
-        
+
         const result = await response.json();
-        
+
         if (result.success) {
             alert('✅ Vote submitted successfully!');
             closeVoteModal();
-            
+
             // Reload submissions to show updated stats
             loadArenaSubmissions();
         } else {
@@ -865,10 +867,10 @@ async function submitVote(voteType) {
 function setupArenaButtonForRater() {
     const arenaSection = document.getElementById('rater-arena-section');
     const arenaButton = document.getElementById('rater-arena-btn');
-    
+
     if (arenaSection && arenaButton) {
         arenaSection.style.display = 'block';
-        arenaButton.onclick = function() {
+        arenaButton.onclick = function () {
             const occasionSelect = document.getElementById('rater-occasion');
             let occasion = occasionSelect.value;
             if (occasion === 'custom') {
@@ -881,32 +883,32 @@ function setupArenaButtonForRater() {
 
 function addArenaButtonToGenerator() {
     const resultsSection = document.getElementById('generator-results');
-    
+
     // Check if button already exists
     if (document.getElementById('generator-arena-btn')) return;
-    
+
     const arenaButton = document.createElement('button');
     arenaButton.id = 'generator-arena-btn';
     arenaButton.className = 'btn-primary';
     arenaButton.innerHTML = '<span class="btn-icon">🏆</span> Submit to Fashion Arena';
-    arenaButton.onclick = function() {
+    arenaButton.onclick = function () {
         const generatedImage = document.getElementById('generated-image').src;
         openArenaModal(generatedImage, lastGeneratorParams.occasion, 'generator');
     };
-    
+
     const actionButtons = resultsSection.querySelector('.action-buttons');
     actionButtons.insertBefore(arenaButton, actionButtons.firstChild);
 }
 
 // Modify existing display functions to add arena buttons
 const originalDisplayRaterResults = displayRaterResults;
-displayRaterResults = function(data) {
+displayRaterResults = function (data) {
     originalDisplayRaterResults(data);
     setupArenaButtonForRater();
 };
 
 const originalDisplayGeneratorResults = displayGeneratorResults;
-displayGeneratorResults = function(result) {
+displayGeneratorResults = function (result) {
     originalDisplayGeneratorResults(result);
     addArenaButtonToGenerator();
 };
