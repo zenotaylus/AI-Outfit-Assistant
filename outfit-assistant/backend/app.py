@@ -847,6 +847,38 @@ def cleanup_invalid_submissions():
         logger.error(f"Error in cleanup_invalid_submissions: {e}")
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/arena/submission/<submission_id>', methods=['DELETE'])
+def delete_submission(submission_id):
+    """
+    Delete a submission (password protected)
+    """
+    try:
+        data = request.json
+        password = data.get('password')
+
+        # Check password
+        if password != '182838':
+            return jsonify({"error": "Incorrect password"}), 403
+
+        logger.info(f"Delete request for submission: {submission_id}")
+
+        # Delete submission
+        success = fashion_arena.delete_submission(submission_id)
+
+        if not success:
+            return jsonify({"error": "Submission not found"}), 404
+
+        logger.info(f"Submission {submission_id} deleted successfully")
+
+        return jsonify({
+            "success": True,
+            "message": "Submission deleted successfully"
+        })
+
+    except Exception as e:
+        logger.error(f"Error in delete_submission: {e}")
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == '__main__':
     # Check if API key is configured
     if not os.getenv('OPENAI_API_KEY'):

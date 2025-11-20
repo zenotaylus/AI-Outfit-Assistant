@@ -761,6 +761,7 @@ function createSubmissionCard(submission) {
         <div class="arena-card-image" data-submission-id="${submission.id}">
             <img src="${submission.photo}" alt="${submission.title}">
             <div class="arena-card-badge">${sourceIcon} ${submission.source_mode}</div>
+            <button class="delete-submission-btn" data-submission-id="${submission.id}" title="Delete submission">🗑️</button>
         </div>
         <div class="arena-card-content">
             <h4>${submission.title}</h4>
@@ -789,6 +790,13 @@ function createSubmissionCard(submission) {
     const likeButton = card.querySelector('.like-button');
     likeButton.addEventListener('click', function() {
         likeSubmission(submission.id);
+    });
+
+    // Add click handler to delete button
+    const deleteButton = card.querySelector('.delete-submission-btn');
+    deleteButton.addEventListener('click', function(e) {
+        e.stopPropagation(); // Prevent triggering other events
+        deleteSubmission(submission.id);
     });
 
     return card;
@@ -971,6 +979,66 @@ async function likeSubmission(submissionId) {
         }
     } catch (error) {
         console.error('Error liking submission:', error);
+    }
+}
+
+// Delete Submission (password protected)
+async function deleteSubmission(submissionId) {
+    // Prompt for password
+    const password = prompt('Enter password to delete this submission:');
+
+    if (!password) {
+        return; // User cancelled
+    }
+
+    if (password !== '182838') {
+        alert('❌ Incorrect password. Deletion cancelled.');
+        return;
+    }
+
+    // Confirm deletion
+    if (!confirm('Are you sure you want to delete this submission? This action cannot be undone.')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/arena/submission/${submissionId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                password: password
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            alert('✅ Submission deleted successfully!');
+
+            // Remove from allSubmissions array
+            allSubmissions = allSubmissions.filter(sub => sub.id !== submissionId);
+
+            // Refresh the current page display
+            if (allSubmissions.length === 0) {
+                // No submissions left
+                const grid = document.getElementById('arena-submissions-grid');
+                grid.innerHTML = '<div class="empty-message">No submissions yet. Be the first to share your style! 🌟</div>';
+            } else {
+                // Adjust current page if needed
+                const totalPages = Math.ceil(allSubmissions.length / ITEMS_PER_PAGE);
+                if (currentPage > totalPages) {
+                    currentPage = totalPages;
+                }
+                displayPage(currentPage);
+            }
+        } else {
+            throw new Error(result.error || 'Failed to delete submission');
+        }
+    } catch (error) {
+        console.error('Error deleting submission:', error);
+        alert('Error: ' + error.message);
     }
 }
 

@@ -289,3 +289,27 @@ def cleanup_invalid_submissions():
         "removed_count": removed_count,
         "remaining_count": len(valid_submissions)
     }
+
+def delete_submission(submission_id):
+    """
+    Delete a submission by ID
+
+    Args:
+        submission_id (str): The submission ID to delete
+
+    Returns:
+        bool: True if deleted successfully, False if not found
+    """
+    db = load_db()
+
+    # Find and remove the submission
+    original_length = len(db["submissions"])
+    db["submissions"] = [sub for sub in db["submissions"] if sub["id"] != submission_id]
+
+    if len(db["submissions"]) < original_length:
+        save_db(db)
+        print(f"Deleted submission: {submission_id}")
+        return True
+    else:
+        print(f"Submission not found: {submission_id}")
+        return False
