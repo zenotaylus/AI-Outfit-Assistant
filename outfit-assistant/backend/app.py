@@ -514,15 +514,18 @@ Format as JSON:
             'Formal Event': 'elegant ballroom with chandeliers and sophisticated ambiance',
             'Date Night': 'upscale restaurant interior with romantic lighting',
             'Business Meeting': 'contemporary conference room with glass walls',
-            'Wedding': 'beautiful outdoor garden venue with floral decorations',
-            'Beach Trip': 'pristine sandy beach with turquoise ocean water',
-            'Gym/Sports': 'modern fitness center or outdoor athletic track',
+            'Professional/Formal': 'elegant professional setting with modern corporate interior or sophisticated ballroom ambiance',
+            'Wedding Guest': 'beautiful outdoor garden venue with floral decorations',
+            'Garden Party': 'elegant outdoor garden party setting with lush greenery, flowers, and natural daylight',
+            'Beach/Resort': 'pristine sandy beach with turquoise ocean water and tropical scenery',
+            'Gym/Athletic': 'modern fitness center or outdoor athletic track',
             'Party/Club': 'stylish nightclub interior with ambient lighting',
+            'Halloween': 'festive Halloween party setting with atmospheric decorations',
             'Travel': 'airport terminal or scenic travel destination'
         }
-        
-        # Get background or use fashion catwalk as fallback
-        background = background_map.get(occasion, 'professional fashion runway catwalk stage with dramatic lighting and elegant backdrop')
+
+        # Get background or use neutral elegant backdrop as fallback
+        background = background_map.get(occasion, 'elegant neutral backdrop with natural lighting')
         
         logger.info(f"Background selected: {background}")
         logger.info(f"Outfit details for image: {outfit_details}")

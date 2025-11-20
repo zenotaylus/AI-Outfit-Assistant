@@ -1428,8 +1428,8 @@ footer {
 }
 
 .leaderboard-image {
-    width: 280px;
-    height: 280px;
+    width: 450px;
+    height: 450px;
     border-radius: 0;
     overflow: hidden;
     flex-shrink: 0;
