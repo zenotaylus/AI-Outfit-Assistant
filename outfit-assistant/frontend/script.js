@@ -313,6 +313,11 @@ function resetRater() {
 }
 
 async function generateFromRaterRecommendations() {
+    console.log('Generate Improved Outfit clicked');
+    console.log('Has image data:', !!raterImageData);
+    console.log('Current occasion:', currentRaterOccasion);
+    console.log('Current suggestions:', currentRaterSuggestions);
+
     // Check if we have the necessary data
     if (!raterImageData) {
         alert('No image data available. Please rate an outfit first.');
@@ -333,6 +338,7 @@ async function generateFromRaterRecommendations() {
         ];
         conditions = allSuggestions.join(', ');
     }
+    console.log('Conditions for generation:', conditions);
 
     // Prepare parameters for outfit generation
     const params = {
@@ -348,12 +354,14 @@ async function generateFromRaterRecommendations() {
     lastGeneratorParams = params;
 
     // Switch to generator mode and show loading
+    console.log('Switching to generator mode and calling API...');
     switchMode('generator');
     document.getElementById('generator-form').style.display = 'none';
     document.getElementById('generator-results').style.display = 'none';
     document.getElementById('generator-loading').style.display = 'block';
 
     try {
+        console.log('Calling API:', `${API_BASE_URL}/generate-outfit`);
         const response = await fetch(`${API_BASE_URL}/generate-outfit`, {
             method: 'POST',
             headers: {
@@ -363,6 +371,7 @@ async function generateFromRaterRecommendations() {
         });
 
         const result = await response.json();
+        console.log('API response:', result);
 
         if (result.success) {
             displayGeneratorResults(result);
@@ -370,7 +379,7 @@ async function generateFromRaterRecommendations() {
             throw new Error(result.error || 'Failed to generate outfit');
         }
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Error generating outfit:', error);
         alert('Error: ' + error.message + '\n\nPlease try again or use the Outfit Generator manually.');
         document.getElementById('generator-form').style.display = 'block';
     } finally {
