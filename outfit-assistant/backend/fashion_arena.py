@@ -6,10 +6,12 @@ import os
 from datetime import datetime
 import uuid
 
-# Use Railway volume path if available, otherwise use local path
-DATA_DIR = os.getenv('RAILWAY_VOLUME_MOUNT_PATH', '/app/data') if os.getenv('RAILWAY_ENVIRONMENT') else '.'
+# Use Railway volume path if it exists, otherwise use local path
+# Railway volume is mounted at /app/data
+DATA_DIR = '/app/data' if os.path.exists('/app/data') else '.'
 os.makedirs(DATA_DIR, exist_ok=True)
 FASHION_ARENA_DB = os.path.join(DATA_DIR, "fashion_arena_db.json")
+print(f"Fashion Arena DB path: {FASHION_ARENA_DB}")
 
 def initialize_db():
     """Initialize the fashion arena database if it doesn't exist"""
