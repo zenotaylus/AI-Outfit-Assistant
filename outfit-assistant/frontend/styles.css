@@ -116,7 +116,6 @@ header .logo {
     color: #666;
     margin-bottom: 40px;
     font-size: 1.1rem;
-    font-style: italic;
 }
 
 /* Form Styles */
@@ -165,7 +164,6 @@ header .logo {
     font-size: 0.85rem;
     color: #999;
     margin-top: 6px;
-    font-style: italic;
 }
 
 /* Upload Area */
@@ -204,7 +202,6 @@ header .logo {
 .upload-hint {
     font-size: 0.9rem;
     color: #999;
-    font-style: italic;
 }
 
 .image-preview {
@@ -271,7 +268,6 @@ header .logo {
     font-size: 0.85rem;
     color: #666;
     margin-top: 8px;
-    font-style: italic;
 }
 
 /* Buttons */
@@ -356,7 +352,6 @@ header .logo {
 .loading-hint {
     font-size: 0.95rem;
     color: #999;
-    font-style: italic;
 }
 
 /* Results Section */
@@ -425,7 +420,6 @@ header .logo {
     font-size: 0.9rem;
     color: #ccc;
     line-height: 1.5;
-    font-style: italic;
 }
 
 /* Feedback Section */
@@ -506,7 +500,6 @@ header .logo {
     color: #666;
     margin-bottom: 25px;
     font-size: 1.05rem;
-    font-style: italic;
 }
 
 .arena-action-section .btn-primary {
@@ -571,7 +564,6 @@ header .logo {
 .shopping-item .item-reason {
     font-size: 0.85rem;
     color: #999;
-    font-style: italic;
     margin-bottom: 18px;
     flex-grow: 1;
 }
@@ -721,7 +713,6 @@ header .logo {
 .outfit-item .item-color {
     font-size: 0.9rem;
     color: #999;
-    font-style: italic;
 }
 
 .total-cost {
@@ -831,6 +822,9 @@ footer {
 .roast-section {
     margin: 50px 0;
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .btn-roast-reveal {
@@ -907,7 +901,6 @@ footer {
     font-size: 1.25rem;
     line-height: 1.9;
     color: #333;
-    font-style: italic;
     font-weight: 400;
 }
 
@@ -1604,7 +1597,6 @@ footer {
 
 .empty-message {
     color: #999;
-    font-style: italic;
 }
 
 /* Pagination Controls */
