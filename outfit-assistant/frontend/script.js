@@ -673,9 +673,13 @@ function displayArenaSubmissions(submissions) {
             </div>
         `;
 
-        // Add double-click handler to image
+        // Add double-click handler to image with heart animation
         const imageContainer = card.querySelector('.arena-card-image');
-        imageContainer.addEventListener('dblclick', function() {
+        imageContainer.addEventListener('dblclick', function(e) {
+            // Show heart animation
+            showHeartAnimation(imageContainer);
+
+            // Like the submission
             likeSubmission(submission.id);
         });
 
@@ -812,6 +816,22 @@ async function handleArenaSubmit(e) {
         console.error('Error submitting to arena:', error);
         alert('Error: ' + error.message);
     }
+}
+
+// Show heart animation (Instagram-style)
+function showHeartAnimation(container) {
+    // Create heart element
+    const heart = document.createElement('div');
+    heart.className = 'heart-animation';
+    heart.innerHTML = '❤️';
+
+    // Add to container
+    container.appendChild(heart);
+
+    // Remove after animation completes
+    setTimeout(() => {
+        container.removeChild(heart);
+    }, 800); // Match animation duration
 }
 
 // Like Submission (simplified voting)
