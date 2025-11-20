@@ -272,7 +272,7 @@ function displayRaterResults(data) {
     // Display roast (if available)
     if (data.roast) {
         document.getElementById('roast-text').textContent = data.roast;
-        document.getElementById('roast-section').style.display = 'block';
+        document.getElementById('roast-section').style.display = 'flex';
         // Reset roast button and content visibility
         document.getElementById('roast-reveal-btn').style.display = 'block';
         document.getElementById('roast-content').style.display = 'none';
