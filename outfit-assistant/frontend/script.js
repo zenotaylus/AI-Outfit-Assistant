@@ -663,20 +663,23 @@ async function loadArenaSubmissions() {
 // Display next batch of submissions
 function displayNextBatch() {
     if (isLoadingMore || displayedCount >= allSubmissions.length) {
+        console.log('Skipping batch:', { isLoadingMore, displayedCount, total: allSubmissions.length });
         return;
     }
 
+    console.log('Displaying batch:', { displayedCount, total: allSubmissions.length });
     isLoadingMore = true;
     const grid = document.getElementById('arena-submissions-grid');
 
     // Get loading indicator if it exists
     const loadingIndicator = document.getElementById('loading-more');
     if (loadingIndicator) {
-        loadingIndicator.style.display = 'block';
+        loadingIndicator.style.display = 'flex';
     }
 
     // Get next batch of submissions
     const nextBatch = allSubmissions.slice(displayedCount, displayedCount + ITEMS_PER_PAGE);
+    console.log('Next batch size:', nextBatch.length);
 
     // Add a small delay for smooth loading experience
     setTimeout(() => {
@@ -692,6 +695,7 @@ function displayNextBatch() {
         });
 
         displayedCount += nextBatch.length;
+        console.log('Batch displayed. New count:', displayedCount);
 
         // Hide loading indicator
         if (loadingIndicator) {
@@ -700,6 +704,7 @@ function displayNextBatch() {
 
         // Remove loading indicator if all items are loaded
         if (displayedCount >= allSubmissions.length && loadingIndicator) {
+            console.log('All items loaded. Removing indicator.');
             loadingIndicator.remove();
         }
 
@@ -765,21 +770,32 @@ function createSubmissionCard(submission) {
 
 // Infinite scroll detection
 function setupInfiniteScroll() {
-    const container = document.querySelector('.container');
-
     // Debounce scroll event for better performance
     let scrollTimeout;
-    container.addEventListener('scroll', function() {
+    window.addEventListener('scroll', function() {
         if (scrollTimeout) {
             clearTimeout(scrollTimeout);
         }
 
         scrollTimeout = setTimeout(() => {
-            const scrollPosition = container.scrollTop + container.clientHeight;
-            const scrollHeight = container.scrollHeight;
+            // Check if we're in Fashion Arena mode
+            const arenaMode = document.getElementById('fashion-arena');
+            if (!arenaMode || arenaMode.style.display === 'none') {
+                return; // Not in arena mode, skip
+            }
 
-            // Load more when user is 300px from bottom
-            if (scrollHeight - scrollPosition < 300 && !isLoadingMore && displayedCount < allSubmissions.length) {
+            // Check if we're on Browse & Vote tab
+            const browseTab = document.getElementById('arena-browse-vote');
+            if (!browseTab || browseTab.style.display === 'none') {
+                return; // Not on browse tab, skip
+            }
+
+            const scrollPosition = window.scrollY + window.innerHeight;
+            const scrollHeight = document.documentElement.scrollHeight;
+
+            // Load more when user is 500px from bottom
+            if (scrollHeight - scrollPosition < 500 && !isLoadingMore && displayedCount < allSubmissions.length) {
+                console.log('Loading more items...'); // Debug
                 displayNextBatch();
             }
         }, 100); // Debounce 100ms
