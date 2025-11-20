@@ -605,9 +605,14 @@ def submit_to_arena():
         
         if not photo:
             return jsonify({"error": "No photo provided"}), 400
-        
+
+        # Validate photo data - reject local file paths
+        if photo.startswith("file://"):
+            logger.warning(f"Rejected submission with local file path")
+            return jsonify({"error": "Invalid photo data. Please use base64-encoded image data."}), 400
+
         logger.info(f"Submission - Title: {title}, Occasion: {occasion}, Source: {source_mode}")
-        
+
         # Submit to Fashion Arena
         submission = fashion_arena.submit_to_arena(
             photo_data=photo,
@@ -815,6 +820,31 @@ def like_submission():
 
     except Exception as e:
         logger.error(f"Error in like_submission: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/arena/cleanup', methods=['POST'])
+def cleanup_invalid_submissions():
+    """
+    Clean up submissions with invalid photo data (local file paths)
+    """
+    try:
+        logger.info("="*60)
+        logger.info("FASHION ARENA CLEANUP REQUEST")
+        logger.info("="*60)
+
+        # Cleanup invalid submissions
+        result = fashion_arena.cleanup_invalid_submissions()
+
+        logger.info(f"Cleanup complete - Removed {result['removed_count']} invalid submissions")
+
+        return jsonify({
+            "success": True,
+            "message": f"Removed {result['removed_count']} submissions with invalid photo data",
+            "result": result
+        })
+
+    except Exception as e:
+        logger.error(f"Error in cleanup_invalid_submissions: {e}")
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':

@@ -261,3 +261,31 @@ def like_submission(submission_id):
     save_db(db)
 
     return submission
+
+def cleanup_invalid_submissions():
+    """
+    Remove submissions with invalid photo data (local file paths)
+
+    Returns:
+        dict: Cleanup results with count of removed submissions
+    """
+    db = load_db()
+    original_count = len(db["submissions"])
+
+    # Filter out submissions with file:// paths
+    valid_submissions = [
+        sub for sub in db["submissions"]
+        if not (sub.get("photo", "").startswith("file://"))
+    ]
+
+    removed_count = original_count - len(valid_submissions)
+
+    if removed_count > 0:
+        db["submissions"] = valid_submissions
+        save_db(db)
+
+    return {
+        "original_count": original_count,
+        "removed_count": removed_count,
+        "remaining_count": len(valid_submissions)
+    }
