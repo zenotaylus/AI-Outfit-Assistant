@@ -1092,3 +1092,141 @@ displayGeneratorResults = function (result) {
     originalDisplayGeneratorResults(result);
     addArenaButtonToGenerator();
 };
+
+// ============================================================================
+// CAMERA FUNCTIONS
+// ============================================================================
+
+let cameraStream = null;
+let currentCameraMode = null; // 'rater' or 'generator'
+
+// Open camera modal
+function openCamera(mode) {
+    currentCameraMode = mode;
+    const modal = document.getElementById('camera-modal');
+    const video = document.getElementById('camera-video');
+    const canvas = document.getElementById('camera-canvas');
+    const preview = document.getElementById('camera-preview');
+    const captureBtn = document.getElementById('capture-btn');
+    const retakeBtn = document.getElementById('retake-btn');
+    const usePhotoBtn = document.getElementById('use-photo-btn');
+
+    // Reset UI
+    video.style.display = 'block';
+    canvas.style.display = 'none';
+    preview.style.display = 'none';
+    captureBtn.style.display = 'inline-block';
+    retakeBtn.style.display = 'none';
+    usePhotoBtn.style.display = 'none';
+
+    // Show modal
+    modal.style.display = 'flex';
+
+    // Start camera
+    navigator.mediaDevices.getUserMedia({
+        video: {
+            facingMode: 'user',
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+        }
+    })
+    .then(stream => {
+        cameraStream = stream;
+        video.srcObject = stream;
+    })
+    .catch(err => {
+        console.error('Camera error:', err);
+        alert('Unable to access camera. Please check permissions and try again.');
+        closeCamera();
+    });
+}
+
+// Close camera modal
+function closeCamera() {
+    // Stop camera stream
+    if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream = null;
+    }
+
+    // Hide modal
+    const modal = document.getElementById('camera-modal');
+    modal.style.display = 'none';
+
+    // Reset
+    currentCameraMode = null;
+}
+
+// Capture photo from video
+function capturePhoto() {
+    const video = document.getElementById('camera-video');
+    const canvas = document.getElementById('camera-canvas');
+    const preview = document.getElementById('camera-preview');
+    const captureBtn = document.getElementById('capture-btn');
+    const retakeBtn = document.getElementById('retake-btn');
+    const usePhotoBtn = document.getElementById('use-photo-btn');
+
+    // Set canvas size to match video
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    // Draw video frame to canvas
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0);
+
+    // Convert canvas to image
+    const imageData = canvas.toDataURL('image/jpeg', 0.9);
+    preview.src = imageData;
+
+    // Update UI
+    video.style.display = 'none';
+    preview.style.display = 'block';
+    captureBtn.style.display = 'none';
+    retakeBtn.style.display = 'inline-block';
+    usePhotoBtn.style.display = 'inline-block';
+}
+
+// Retake photo
+function retakePhoto() {
+    const video = document.getElementById('camera-video');
+    const preview = document.getElementById('camera-preview');
+    const captureBtn = document.getElementById('capture-btn');
+    const retakeBtn = document.getElementById('retake-btn');
+    const usePhotoBtn = document.getElementById('use-photo-btn');
+
+    // Update UI
+    video.style.display = 'block';
+    preview.style.display = 'none';
+    captureBtn.style.display = 'inline-block';
+    retakeBtn.style.display = 'none';
+    usePhotoBtn.style.display = 'none';
+}
+
+// Use captured photo
+function usePhoto() {
+    const preview = document.getElementById('camera-preview');
+    const imageData = preview.src;
+
+    if (currentCameraMode === 'rater') {
+        // Set rater image
+        raterImageData = imageData;
+        const raterPreview = document.getElementById('rater-preview');
+        const uploadArea = document.getElementById('rater-upload');
+        raterPreview.src = imageData;
+        raterPreview.style.display = 'block';
+        uploadArea.classList.add('has-image');
+        uploadArea.querySelector('.upload-prompt').style.display = 'none';
+    } else if (currentCameraMode === 'generator') {
+        // Set generator image
+        generatorImageData = imageData;
+        const generatorPreview = document.getElementById('generator-preview');
+        const uploadArea = document.getElementById('generator-upload');
+        generatorPreview.src = imageData;
+        generatorPreview.style.display = 'block';
+        uploadArea.classList.add('has-image');
+        uploadArea.querySelector('.upload-prompt').style.display = 'none';
+    }
+
+    // Close camera
+    closeCamera();
+}
