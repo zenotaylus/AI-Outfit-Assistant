@@ -736,6 +736,137 @@ function switchMode(mode) {
     }
 }
 
+// Pagination state
+let allSubmissions = [];
+let currentPage = 1;
+let totalItems = 0;
+const ITEMS_PER_PAGE = 10; // Show 10 items per page
+
+// Load Arena Submissions
+async function loadArenaSubmissions(page = 1) {
+    const sortBy = document.getElementById('arena-sort').value;
+    const grid = document.getElementById('arena-submissions-grid');
+
+    grid.innerHTML = '<div class="loading-message">Loading submissions...</div>';
+
+    // Update current page
+    currentPage = page;
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/arena/submissions?sort_by=${sortBy}&page=${page}&limit=${ITEMS_PER_PAGE}`);
+        const result = await response.json();
+
+        if (result.success && result.submissions.length > 0) {
+            allSubmissions = result.submissions;
+            totalItems = result.total;
+            displayPage(currentPage);
+        } else {
+            if (page === 1) {
+                grid.innerHTML = '<div class="empty-message">No submissions yet. Be the first to share your style! 🌟</div>';
+            } else {
+                // If we're on a later page and it's empty (e.g. after deletion), go back
+                loadArenaSubmissions(page - 1);
+            }
+        }
+    } catch (error) {
+        console.error('Error loading submissions:', error);
+        grid.innerHTML = '<div class="error-message">Failed to load submissions. Please try again.</div>';
+    }
+}
+
+// Display specific page of submissions
+function displayPage(page) {
+    const grid = document.getElementById('arena-submissions-grid');
+    grid.innerHTML = '';
+
+    // Submissions are already paginated from backend
+    const pageSubmissions = allSubmissions;
+
+    // Display submissions for this page
+    pageSubmissions.forEach(submission => {
+        const card = createSubmissionCard(submission);
+        grid.appendChild(card);
+    });
+
+    // Add pagination controls
+    addPaginationControls();
+
+    // Scroll to top of grid
+    // window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Add pagination controls
+function addPaginationControls() {
+    const grid = document.getElementById('arena-submissions-grid');
+    const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+
+    if (totalPages <= 1) {
+        return; // No pagination needed
+    }
+
+    const paginationDiv = document.createElement('div');
+    paginationDiv.className = 'pagination-controls';
+    paginationDiv.id = 'pagination-controls';
+
+    let html = '<div class="pagination-buttons">';
+
+    // Previous button
+    if (currentPage > 1) {
+        html += `<button class="pagination-btn" onclick="goToPage(${currentPage - 1})">← Previous</button>`;
+    }
+
+    // Page numbers
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    // Adjust start if we're near the end
+    if (endPage - startPage < maxVisiblePages - 1) {
+        startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    // First page if not visible
+    if (startPage > 1) {
+        html += `<button class="pagination-btn" onclick="goToPage(1)">1</button>`;
+        if (startPage > 2) {
+            html += '<span class="pagination-dots">...</span>';
+        }
+    }
+
+    // Page number buttons
+    for (let i = startPage; i <= endPage; i++) {
+        if (i === currentPage) {
+            html += `<button class="pagination-btn active">${i}</button>`;
+        } else {
+            html += `<button class="pagination-btn" onclick="goToPage(${i})">${i}</button>`;
+        }
+    }
+
+    // Last page if not visible
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            html += '<span class="pagination-dots">...</span>';
+        }
+        html += `<button class="pagination-btn" onclick="goToPage(${totalPages})">${totalPages}</button>`;
+    }
+
+    // Next button
+    if (currentPage < totalPages) {
+        html += `<button class="pagination-btn" onclick="goToPage(${currentPage + 1})">Next →</button>`;
+    }
+
+    html += '</div>';
+    html += `<div class="pagination-info">Page ${currentPage} of ${totalPages} (${totalItems} items)</div>`;
+
+    paginationDiv.innerHTML = html;
+    grid.appendChild(paginationDiv);
+}
+
+// Go to specific page
+function goToPage(page) {
+    loadArenaSubmissions(page);
+}
+
 function switchArenaTab(tabName) {
     // Update tab buttons
     document.querySelectorAll('.arena-tab').forEach(tab => {
@@ -757,6 +888,11 @@ function switchArenaTab(tabName) {
         document.getElementById('arena-leaderboard').classList.add('active');
         loadLeaderboard();
     }
+}
+
+// Create a single submission card
+function createSubmissionCard(submission) {
+    const card = document.createElement('div');
     card.className = 'arena-card';
 
     const sourceIcon = submission.source_mode === 'rater' ? '⭐' : '🎨';
