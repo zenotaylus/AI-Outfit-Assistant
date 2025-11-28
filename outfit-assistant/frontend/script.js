@@ -13,6 +13,46 @@ let currentRaterOccasion = null;
 let currentGeneratorOccasion = null;
 let currentRaterSuggestions = null;
 
+// Helper function to compress images
+function compressImage(file, maxWidth = 1024, quality = 0.85) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const img = new Image();
+            img.onload = function () {
+                // Calculate new dimensions
+                let width = img.width;
+                let height = img.height;
+
+                if (width > maxWidth || height > maxWidth) {
+                    if (width > height) {
+                        height = (height / width) * maxWidth;
+                        width = maxWidth;
+                    } else {
+                        width = (width / height) * maxWidth;
+                        height = maxWidth;
+                    }
+                }
+
+                // Create canvas and compress
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                // Convert to base64 with compression
+                const compressedData = canvas.toDataURL('image/jpeg', quality);
+                resolve(compressedData);
+            };
+            img.onerror = reject;
+            img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
 // Helper function to generate shopping URLs
 function generateShoppingButtons(itemName) {
     const searchTerm = encodeURIComponent(itemName);
@@ -34,6 +74,16 @@ function generateShoppingButtons(itemName) {
             </a>
         </div>
     `;
+}
+
+// Helper function to add timeout to fetch requests
+function fetchWithTimeout(url, options = {}, timeout = 60000) {
+    return Promise.race([
+        fetch(url, options),
+        new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Request timeout - please try again')), timeout)
+        )
+    ]);
 }
 
 // Initialize app
@@ -132,16 +182,16 @@ function initializeRaterMode() {
     form.addEventListener('submit', handleRaterSubmit);
 }
 
-function handleRaterImageUpload(file) {
+async function handleRaterImageUpload(file) {
     // Check file size (10MB max)
     if (file.size > 10 * 1024 * 1024) {
         alert('File size must be less than 10MB');
         return;
     }
 
-    const reader = new FileReader();
-    reader.onload = function (e) {
-        raterImageData = e.target.result;
+    try {
+        // Compress image before storing
+        raterImageData = await compressImage(file);
 
         const preview = document.getElementById('rater-preview');
         const uploadArea = document.getElementById('rater-upload');
@@ -150,8 +200,10 @@ function handleRaterImageUpload(file) {
         preview.style.display = 'block';
         uploadArea.classList.add('has-image');
         uploadArea.querySelector('.upload-prompt').style.display = 'none';
-    };
-    reader.readAsDataURL(file);
+    } catch (error) {
+        console.error('Error processing image:', error);
+        alert('Failed to process image. Please try another photo.');
+    }
 }
 
 async function handleRaterSubmit(e) {
@@ -182,7 +234,7 @@ async function handleRaterSubmit(e) {
     document.getElementById('rater-loading').style.display = 'block';
 
     try {
-        const response = await fetch(`${API_BASE_URL}/rate-outfit`, {
+        const response = await fetchWithTimeout(`${API_BASE_URL}/rate-outfit`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -192,7 +244,7 @@ async function handleRaterSubmit(e) {
                 occasion: occasion,
                 budget: budgetText
             })
-        });
+        }, 60000); // 60 second timeout
 
         const result = await response.json();
 
@@ -362,13 +414,13 @@ async function generateFromRaterRecommendations() {
 
     try {
         console.log('Calling API:', `${API_BASE_URL}/generate-outfit`);
-        const response = await fetch(`${API_BASE_URL}/generate-outfit`, {
+        const response = await fetchWithTimeout(`${API_BASE_URL}/generate-outfit`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(params)
-        });
+        }, 120000); // 120 second timeout for image generation
 
         const result = await response.json();
         console.log('API response:', result);
@@ -470,16 +522,16 @@ function initializeGeneratorMode() {
     form.addEventListener('submit', handleGeneratorSubmit);
 }
 
-function handleGeneratorImageUpload(file) {
+async function handleGeneratorImageUpload(file) {
     // Check file size (10MB max)
     if (file.size > 10 * 1024 * 1024) {
         alert('File size must be less than 10MB');
         return;
     }
 
-    const reader = new FileReader();
-    reader.onload = function (e) {
-        generatorImageData = e.target.result;
+    try {
+        // Compress image before storing
+        generatorImageData = await compressImage(file);
 
         const preview = document.getElementById('generator-preview');
         const uploadArea = document.getElementById('generator-upload');
@@ -488,8 +540,10 @@ function handleGeneratorImageUpload(file) {
         preview.style.display = 'block';
         uploadArea.classList.add('has-image');
         uploadArea.querySelector('.upload-prompt').style.display = 'none';
-    };
-    reader.readAsDataURL(file);
+    } catch (error) {
+        console.error('Error processing image:', error);
+        alert('Failed to process image. Please try another photo.');
+    }
 }
 
 async function handleGeneratorSubmit(e) {
@@ -526,13 +580,13 @@ async function handleGeneratorSubmit(e) {
     document.getElementById('generator-loading').style.display = 'block';
 
     try {
-        const response = await fetch(`${API_BASE_URL}/generate-outfit`, {
+        const response = await fetchWithTimeout(`${API_BASE_URL}/generate-outfit`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(lastGeneratorParams)
-        });
+        }, 120000); // 120 second timeout
 
         const result = await response.json();
 
@@ -628,13 +682,13 @@ async function regenerateOutfit() {
     document.getElementById('generator-loading').style.display = 'block';
 
     try {
-        const response = await fetch(`${API_BASE_URL}/generate-outfit`, {
+        const response = await fetchWithTimeout(`${API_BASE_URL}/generate-outfit`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(lastGeneratorParams)
-        });
+        }, 120000); // 120 second timeout
 
         const result = await response.json();
 
@@ -1361,16 +1415,31 @@ function capturePhoto() {
     const retakeBtn = document.getElementById('retake-btn');
     const usePhotoBtn = document.getElementById('use-photo-btn');
 
-    // Set canvas size to match video
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    // Calculate dimensions (max 1024px)
+    let width = video.videoWidth;
+    let height = video.videoHeight;
+    const maxSize = 1024;
 
-    // Draw video frame to canvas
+    if (width > maxSize || height > maxSize) {
+        if (width > height) {
+            height = (height / width) * maxSize;
+            width = maxSize;
+        } else {
+            width = (width / height) * maxSize;
+            height = maxSize;
+        }
+    }
+
+    // Set canvas size
+    canvas.width = width;
+    canvas.height = height;
+
+    // Draw video frame to canvas with compression
     const ctx = canvas.getContext('2d');
-    ctx.drawImage(video, 0, 0);
+    ctx.drawImage(video, 0, 0, width, height);
 
-    // Convert canvas to image
-    const imageData = canvas.toDataURL('image/jpeg', 0.9);
+    // Convert canvas to image with compression
+    const imageData = canvas.toDataURL('image/jpeg', 0.85);
     preview.src = imageData;
 
     // Update UI
