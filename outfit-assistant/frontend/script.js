@@ -1090,6 +1090,12 @@ async function handleArenaSubmit(e) {
     const occasion = document.getElementById('arena-occasion-data').value;
     const sourceMode = document.getElementById('arena-source-mode').value;
 
+    // Get submit button and disable it to prevent duplicate submissions
+    const submitButton = e.target.querySelector('button[type="submit"]');
+    const originalButtonText = submitButton.innerHTML;
+    submitButton.disabled = true;
+    submitButton.innerHTML = '⏳ Submitting...';
+
     try {
         const response = await fetch(`${API_BASE_URL}/arena/submit`, {
             method: 'POST',
@@ -1120,6 +1126,10 @@ async function handleArenaSubmit(e) {
     } catch (error) {
         console.error('Error submitting to arena:', error);
         alert('Error: ' + error.message);
+
+        // Re-enable button on error
+        submitButton.disabled = false;
+        submitButton.innerHTML = originalButtonText;
     }
 }
 
