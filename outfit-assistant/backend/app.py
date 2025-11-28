@@ -101,7 +101,7 @@ def save_base64_to_temp_file(base64_data):
         print(f"Error saving base64 to file: {e}")
         return None
 
-def generate_outfit_image_with_replicate(person_image_base64, outfit_description, occasion, background_description):
+def generate_outfit_image_with_replicate(person_image_base64, outfit_description, occasion, background_description, conditions=""):
     """
     Use NanobananaAPI to generate outfit visualization with face preservation
     """
@@ -112,6 +112,7 @@ def generate_outfit_image_with_replicate(person_image_base64, outfit_description
         logger.info(f"Occasion: {occasion}")
         logger.info(f"Outfit: {outfit_description[:200]}...")
         logger.info(f"Background: {background_description}")
+        logger.info(f"Conditions: {conditions}")
         
         nanobanana_api_key = os.getenv('NANOBANANA_API_KEY')
         if not nanobanana_api_key:
@@ -135,9 +136,10 @@ def generate_outfit_image_with_replicate(person_image_base64, outfit_description
         logger.info(f"Image uploaded to CDN: {image_url}")
         
         # Step 2: Create prompt for NanobananaAPI
+        conditions_text = f" Special requirements: {conditions}." if conditions else ""
         prompt = f"""Transform this person wearing {outfit_description}. 
 Setting: {background_description}. 
-Occasion: {occasion}. 
+Occasion: {occasion}.{conditions_text}
 Keep the same person's face and features exactly as in the original image. Natural pose appropriate for {occasion}, facial expression matching the formality. 
 Photorealistic, professional fashion photography, magazine quality, 3/4 body shot with professional studio lighting."""
         
@@ -546,7 +548,8 @@ Format as JSON:
             user_image, 
             outfit_details,
             occasion,
-            background
+            background,
+            conditions
         )
         
         if not image_url:
