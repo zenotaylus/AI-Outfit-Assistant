@@ -757,138 +757,6 @@ function switchArenaTab(tabName) {
         document.getElementById('arena-leaderboard').classList.add('active');
         loadLeaderboard();
     }
-}
-
-// Pagination state
-let allSubmissions = [];
-let currentPage = 1;
-const ITEMS_PER_PAGE = 10; // Show 10 items per page
-
-// Load Arena Submissions
-async function loadArenaSubmissions() {
-    const sortBy = document.getElementById('arena-sort').value;
-    const grid = document.getElementById('arena-submissions-grid');
-
-    grid.innerHTML = '<div class="loading-message">Loading submissions...</div>';
-
-    // Reset to page 1
-    currentPage = 1;
-
-    try {
-        const response = await fetch(`${API_BASE_URL}/arena/submissions?sort_by=${sortBy}`);
-        const result = await response.json();
-
-        if (result.success && result.submissions.length > 0) {
-            allSubmissions = result.submissions;
-            displayPage(currentPage);
-        } else {
-            grid.innerHTML = '<div class="empty-message">No submissions yet. Be the first to share your style! 🌟</div>';
-        }
-    } catch (error) {
-        console.error('Error loading submissions:', error);
-        grid.innerHTML = '<div class="error-message">Failed to load submissions. Please try again.</div>';
-    }
-}
-
-// Display specific page of submissions
-function displayPage(page) {
-    const grid = document.getElementById('arena-submissions-grid');
-    grid.innerHTML = '';
-
-    // Calculate start and end indices
-    const startIndex = (page - 1) * ITEMS_PER_PAGE;
-    const endIndex = startIndex + ITEMS_PER_PAGE;
-    const pageSubmissions = allSubmissions.slice(startIndex, endIndex);
-
-    // Display submissions for this page
-    pageSubmissions.forEach(submission => {
-        const card = createSubmissionCard(submission);
-        grid.appendChild(card);
-    });
-
-    // Add pagination controls
-    addPaginationControls();
-
-    // Scroll to top of grid
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-// Add pagination controls
-function addPaginationControls() {
-    const grid = document.getElementById('arena-submissions-grid');
-    const totalPages = Math.ceil(allSubmissions.length / ITEMS_PER_PAGE);
-
-    if (totalPages <= 1) {
-        return; // No pagination needed
-    }
-
-    const paginationDiv = document.createElement('div');
-    paginationDiv.className = 'pagination-controls';
-    paginationDiv.id = 'pagination-controls';
-
-    let html = '<div class="pagination-buttons">';
-
-    // Previous button
-    if (currentPage > 1) {
-        html += `<button class="pagination-btn" onclick="goToPage(${currentPage - 1})">← Previous</button>`;
-    }
-
-    // Page numbers
-    const maxVisiblePages = 5;
-    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-
-    // Adjust start if we're near the end
-    if (endPage - startPage < maxVisiblePages - 1) {
-        startPage = Math.max(1, endPage - maxVisiblePages + 1);
-    }
-
-    // First page if not visible
-    if (startPage > 1) {
-        html += `<button class="pagination-btn" onclick="goToPage(1)">1</button>`;
-        if (startPage > 2) {
-            html += '<span class="pagination-dots">...</span>';
-        }
-    }
-
-    // Page number buttons
-    for (let i = startPage; i <= endPage; i++) {
-        if (i === currentPage) {
-            html += `<button class="pagination-btn active">${i}</button>`;
-        } else {
-            html += `<button class="pagination-btn" onclick="goToPage(${i})">${i}</button>`;
-        }
-    }
-
-    // Last page if not visible
-    if (endPage < totalPages) {
-        if (endPage < totalPages - 1) {
-            html += '<span class="pagination-dots">...</span>';
-        }
-        html += `<button class="pagination-btn" onclick="goToPage(${totalPages})">${totalPages}</button>`;
-    }
-
-    // Next button
-    if (currentPage < totalPages) {
-        html += `<button class="pagination-btn" onclick="goToPage(${currentPage + 1})">Next →</button>`;
-    }
-
-    html += '</div>';
-    html += `<div class="pagination-info">Page ${currentPage} of ${totalPages} (${allSubmissions.length} items)</div>`;
-
-    paginationDiv.innerHTML = html;
-    grid.appendChild(paginationDiv);
-}
-
-// Go to specific page
-function goToPage(page) {
-    currentPage = page;
-    displayPage(page);
-}
-
-// Create a single submission card
-function createSubmissionCard(submission) {
-    const card = document.createElement('div');
     card.className = 'arena-card';
 
     const sourceIcon = submission.source_mode === 'rater' ? '⭐' : '🎨';
@@ -915,7 +783,7 @@ function createSubmissionCard(submission) {
 
     // Add double-click handler to image with heart animation
     const imageContainer = card.querySelector('.arena-card-image');
-    imageContainer.addEventListener('dblclick', function(e) {
+    imageContainer.addEventListener('dblclick', function (e) {
         // Show heart animation
         showHeartAnimation(imageContainer);
 
@@ -925,13 +793,13 @@ function createSubmissionCard(submission) {
 
     // Add click handler to like button
     const likeButton = card.querySelector('.like-button');
-    likeButton.addEventListener('click', function() {
+    likeButton.addEventListener('click', function () {
         likeSubmission(submission.id);
     });
 
     // Add click handler to delete button
     const deleteButton = card.querySelector('.delete-submission-btn');
-    deleteButton.addEventListener('click', function(e) {
+    deleteButton.addEventListener('click', function (e) {
         e.stopPropagation(); // Prevent triggering other events
         deleteSubmission(submission.id);
     });
@@ -1000,7 +868,7 @@ function displayLeaderboard(leaderboard) {
 
         // Add click handler to like button
         const likeButton = item.querySelector('.like-button');
-        likeButton.addEventListener('click', function() {
+        likeButton.addEventListener('click', function () {
             likeSubmission(submission.id);
         });
 
@@ -1154,22 +1022,8 @@ async function deleteSubmission(submissionId) {
         if (result.success) {
             alert('✅ Submission deleted successfully!');
 
-            // Remove from allSubmissions array
-            allSubmissions = allSubmissions.filter(sub => sub.id !== submissionId);
-
-            // Refresh the current page display
-            if (allSubmissions.length === 0) {
-                // No submissions left
-                const grid = document.getElementById('arena-submissions-grid');
-                grid.innerHTML = '<div class="empty-message">No submissions yet. Be the first to share your style! 🌟</div>';
-            } else {
-                // Adjust current page if needed
-                const totalPages = Math.ceil(allSubmissions.length / ITEMS_PER_PAGE);
-                if (currentPage > totalPages) {
-                    currentPage = totalPages;
-                }
-                displayPage(currentPage);
-            }
+            // Reload the current page to get updated list from server
+            loadArenaSubmissions(currentPage);
         } else {
             throw new Error(result.error || 'Failed to delete submission');
         }
@@ -1335,15 +1189,15 @@ function openCamera(mode) {
             height: { ideal: 720 }
         }
     })
-    .then(stream => {
-        cameraStream = stream;
-        video.srcObject = stream;
-    })
-    .catch(err => {
-        console.error('Camera error:', err);
-        alert('Unable to access camera. Please check permissions and try again.');
-        closeCamera();
-    });
+        .then(stream => {
+            cameraStream = stream;
+            video.srcObject = stream;
+        })
+        .catch(err => {
+            console.error('Camera error:', err);
+            alert('Unable to access camera. Please check permissions and try again.');
+            closeCamera();
+        });
 }
 
 // Close camera modal

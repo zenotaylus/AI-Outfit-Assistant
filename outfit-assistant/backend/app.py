@@ -646,7 +646,10 @@ def get_arena_submissions():
     """
     try:
         sort_by = request.args.get('sort_by', 'recent')
-        submissions = fashion_arena.get_all_submissions(sort_by=sort_by)
+        page = int(request.args.get('page', 1))
+        limit = int(request.args.get('limit', 10))
+        
+        submissions, total_count = fashion_arena.get_all_submissions(sort_by=sort_by, page=page, limit=limit)
         
         # Remove photo data to reduce payload size (send thumbnails separately if needed)
         for sub in submissions:
@@ -659,7 +662,10 @@ def get_arena_submissions():
         return jsonify({
             "success": True,
             "submissions": submissions,
-            "total": len(submissions)
+            "total": total_count,
+            "page": page,
+            "limit": limit,
+            "total_pages": (total_count + limit - 1) // limit
         })
         
     except Exception as e:

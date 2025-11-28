@@ -71,15 +71,17 @@ def submit_to_arena(photo_data, title, description, occasion, source_mode, user_
     
     return submission
 
-def get_all_submissions(sort_by="recent"):
+def get_all_submissions(sort_by="recent", page=1, limit=10):
     """
-    Get all Fashion Arena submissions
+    Get all Fashion Arena submissions with pagination
     
     Args:
         sort_by: 'recent', 'top_voted', or 'top_rated'
+        page: Page number (1-based)
+        limit: Number of items per page
     
     Returns:
-        list: List of submissions
+        tuple: (list of submissions, total_count)
     """
     db = load_db()
     submissions = db["submissions"]
@@ -91,7 +93,15 @@ def get_all_submissions(sort_by="recent"):
     else:  # recent
         submissions = sorted(submissions, key=lambda x: x["created_at"], reverse=True)
     
-    return submissions
+    total_count = len(submissions)
+    
+    # Pagination
+    start_idx = (page - 1) * limit
+    end_idx = start_idx + limit
+    
+    paginated_submissions = submissions[start_idx:end_idx]
+    
+    return paginated_submissions, total_count
 
 def get_leaderboard(limit=10):
     """
